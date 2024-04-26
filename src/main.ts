@@ -1,8 +1,17 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { configDotenv } from 'dotenv';
+import admin from 'firebase-admin';
+
+configDotenv();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.listen(3000);
+  const port = process.env.PORT || 3000;
+  app.enableCors();
+  await app.listen(port);
+  console.log(`Application is running on port:${port}`);
+  admin.initializeApp();
 }
-bootstrap();
+
+bootstrap().then();
