@@ -12,12 +12,14 @@ import { AuthController } from './presentation/controllers/auth.controller';
 import { jwtConstants } from './infrastructure/auth/constants';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './infrastructure/auth/strategies/jwt.strategy';
+import { Role } from './infrastructure/auth/roles.entities';
 import { GroupController } from './presentation/controllers/groups.controller';
 import { GroupService } from './domain/groups/service/groups.service';
 import { Group } from './domain/groups/groups.entities';
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([User, Role]),
     TypeOrmModule.forFeature([User]),
     TypeOrmModule.forFeature([Group]),
     TypeOrmModule.forRoot(dbdatasource),
