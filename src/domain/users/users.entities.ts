@@ -3,10 +3,11 @@ import {
 	Entity,
 	JoinTable,
 	ManyToMany,
+	OneToMany,
 	PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Role } from '../../infrastructure/auth/roles.entities';
-import { Group } from '../groups/groups.entities';
+import { GroupMember } from '../groups/groupMembers.entities';
 
 @Entity({ name: 'Users' })
 export class User {
@@ -28,16 +29,12 @@ export class User {
 	@Column({ type: 'boolean', default: true })
 	isActive: boolean;
 
-	// Direct relationship to the Role entity using ManyToMany
 	@ManyToMany(() => Role, { eager: true })
 	@JoinTable({ name: 'UserRoles' }) // Customize the join table name
 	roles: Role[];
 
-	@ManyToMany(() => Group, group => group.members)
-	groups: Group[];
-
-	@ManyToMany(() => Group, group => group.admins)
-	adminGroups: Group[];
+	@OneToMany(() => GroupMember, groupMember => groupMember.user)
+	groups: GroupMember[];
 
 	@Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
 	updatedAt: Date;

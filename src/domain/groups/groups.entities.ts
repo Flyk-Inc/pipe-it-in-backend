@@ -1,11 +1,12 @@
 import {
-	Entity,
-	PrimaryGeneratedColumn,
 	Column,
-	ManyToMany,
-	JoinTable,
+	Entity,
+	ManyToOne,
+	OneToMany,
+	PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '../users/users.entities';
+import { GroupMember } from './groupMembers.entities';
 
 @Entity({ name: 'Groups' })
 export class Group {
@@ -15,23 +16,30 @@ export class Group {
 	@Column()
 	name: string;
 
-	@Column({ nullable: true })
+	@Column({ type: 'text', nullable: true })
 	description: string;
 
 	@Column({ type: 'boolean', default: false })
 	isPrivate: boolean;
 
-	@Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-	updatedAt: Date;
+	@Column({ nullable: true })
+	profilePicture: number;
+
+	@Column({ nullable: true })
+	pinnedPost: number;
+
+	@Column()
+	creatorId: number;
+
+	@ManyToOne(() => User, user => user.groups)
+	creator: User;
+
+	@OneToMany(() => GroupMember, groupMember => groupMember.group)
+	members: GroupMember[];
 
 	@Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
 	createdAt: Date;
 
-	@ManyToMany(() => User, user => user.groups)
-	@JoinTable({ name: 'GroupMembers' }) // Customize the join table name
-	members: User[];
-
-	@ManyToMany(() => User, user => user.adminGroups)
-	@JoinTable({ name: 'GroupAdmins' }) // Customize the join table name
-	admins: User[];
+	@Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+	updatedAt: Date;
 }

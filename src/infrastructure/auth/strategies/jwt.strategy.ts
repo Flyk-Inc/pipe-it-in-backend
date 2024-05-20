@@ -14,7 +14,7 @@ export interface JwtPayload {
 
 export type SignedInRequest = ExpressRequest & {
 	user: {
-		userId: string;
+		userId: number;
 		email: string;
 	};
 };
@@ -33,7 +33,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 		if (!(await this.isTokenValid(new Date(payload.iat), payload.email))) {
 			throw new UnauthorizedException();
 		}
-		return { userId: payload.sub, email: payload.email };
+		return { userId: parseInt(payload.sub), email: payload.email };
 	}
 
 	/**

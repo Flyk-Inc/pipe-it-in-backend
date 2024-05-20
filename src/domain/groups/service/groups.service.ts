@@ -2,6 +2,7 @@ import {
 	BadRequestException,
 	ForbiddenException,
 	Injectable,
+	InternalServerErrorException,
 	NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -10,11 +11,14 @@ import { Group } from '../groups.entities';
 import { User } from '../../users/users.entities';
 import { CreateGroupDTO } from '../dto/createGroupDTO';
 import { UpdateGroupDTO } from '../dto/UpdateGroupDTO';
+import { GroupMember } from '../groupMembers.entities';
 
 @Injectable()
 export class GroupService {
 	constructor(
 		@InjectRepository(Group) private groupRepository: Repository<Group>,
+		@InjectRepository(GroupMember)
+		private groupMemberRepository: Repository<GroupMember>,
 		@InjectRepository(User) private userRepository: Repository<User>
 	) {}
 
@@ -27,22 +31,24 @@ export class GroupService {
 			throw new NotFoundException('User not found');
 		}
 
-		const group = this.groupRepository.create(createGroupDTO);
-		group.admins = [user];
+		const group = this.groupRepository.create({
+			...createGroupDTO,
+			creatorId: userId,
+		});
+		await this.groupRepository.save(group);
 
-		return this.groupRepository.save(group);
+		const groupMember = this.groupMemberRepository.create({
+			groupId: group.id,
+			userId: userId,
+			isAdmin: true,
+		});
+		await this.groupMemberRepository.save(groupMember);
+
+		return group;
 	}
 
-	async joinGroup(userId: number, groupId: number): Promise<Group> {
-		const user = await this.userRepository.findOneBy({ id: userId });
-		const group = await this.groupRepository.findOne({
-			where: { id: groupId },
-			relations: ['members'],
-		});
-
-		if (!user) {
-			throw new NotFoundException('User not found');
-		}
+	async joinGroup(userId: number, groupId: number): Promise<void> {
+		const group = await this.groupRepository.findOneBy({ id: groupId });
 
 		if (!group) {
 			throw new NotFoundException('Group not found');
@@ -52,16 +58,26 @@ export class GroupService {
 			throw new ForbiddenException('Group is private. Request access instead.');
 		}
 
-		group.members.push(user);
-		return this.groupRepository.save(group);
+		const existingMember = await this.groupMemberRepository.findOne({
+			where: { groupId: groupId, userId: userId },
+		});
+		if (existingMember) {
+			throw new InternalServerErrorException(
+				'User is already a member of this group'
+			);
+		}
+
+		const groupMember = this.groupMemberRepository.create({
+			groupId: groupId,
+			userId: userId,
+			isAdmin: false,
+		});
+		await this.groupMemberRepository.save(groupMember);
 	}
 
 	async requestAccess(userId: number, groupId: number): Promise<void> {
 		const user = await this.userRepository.findOneBy({ id: userId });
-		const group = await this.groupRepository.findOne({
-			where: { id: groupId },
-			relations: ['members'],
-		});
+		const group = await this.groupRepository.findOneBy({ id: groupId });
 
 		if (!user) {
 			throw new NotFoundException('User not found');
@@ -83,48 +99,48 @@ export class GroupService {
 		groupId: number,
 		updateGroupDTO: UpdateGroupDTO
 	): Promise<Group> {
-		const user = await this.userRepository.findOne({
-			where: { id: userId },
-			relations: ['adminGroups'],
-		});
 		const group = await this.groupRepository.findOneBy({ id: groupId });
-
 		if (!group) {
 			throw new NotFoundException('Group not found');
 		}
 
-		if (!user?.adminGroups.some(adminGroup => adminGroup.id === groupId)) {
-			throw new ForbiddenException('You are not an admin of this group');
+		const groupMember = await this.groupMemberRepository.findOne({
+			where: { groupId: groupId, userId: userId },
+		});
+		if (!groupMember || !groupMember.isAdmin) {
+			throw new ForbiddenException(
+				'User does not have permission to update this group'
+			);
 		}
 
 		Object.assign(group, updateGroupDTO);
-		return this.groupRepository.save(group);
+		await this.groupRepository.save(group);
+		return group;
 	}
 
 	async leaveGroup(userId: number, groupId: number): Promise<void> {
-		const group = await this.groupRepository.findOne({
-			where: { id: groupId },
-			relations: ['members'],
-		});
-
+		const group = await this.groupRepository.findOneBy({ id: groupId });
 		if (!group) {
 			throw new NotFoundException('Group not found');
 		}
 
-		group.members = group.members.filter(member => member.id !== userId);
-		await this.groupRepository.save(group);
+		const groupMember = await this.groupMemberRepository.findOne({
+			where: { groupId: groupId, userId: userId },
+		});
+		if (!groupMember) {
+			throw new InternalServerErrorException(
+				'User is not a member of this group'
+			);
+		}
+
+		await this.groupMemberRepository.remove(groupMember);
 	}
 
 	async getUserGroups(userId: number): Promise<Group[]> {
-		const user = await this.userRepository.findOne({
-			where: { id: userId },
-			relations: ['groups', 'adminGroups'],
+		const groupMembers = await this.groupMemberRepository.find({
+			where: { userId: userId },
+			relations: ['group'],
 		});
-
-		if (!user) {
-			throw new NotFoundException('User not found');
-		}
-
-		return [...user.groups, ...user.adminGroups];
+		return groupMembers.map(member => member.group);
 	}
 }

@@ -16,12 +16,14 @@ import { Role } from './infrastructure/auth/roles.entities';
 import { GroupController } from './presentation/controllers/groups.controller';
 import { GroupService } from './domain/groups/service/groups.service';
 import { Group } from './domain/groups/groups.entities';
+import { GroupMember } from './domain/groups/groupMembers.entities';
 
 @Module({
 	imports: [
 		TypeOrmModule.forFeature([User, Role]),
 		TypeOrmModule.forFeature([User]),
 		TypeOrmModule.forFeature([Group]),
+		TypeOrmModule.forFeature([GroupMember]),
 		TypeOrmModule.forRoot(dbdatasource),
 		JwtModule.register({
 			secret: jwtConstants.secret,

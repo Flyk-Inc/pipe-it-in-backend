@@ -1,15 +1,29 @@
-import { IsBoolean, IsOptional, IsString, Length } from 'class-validator';
+import {
+	IsBoolean,
+	IsInt,
+	IsNotEmpty,
+	IsOptional,
+	IsString,
+} from 'class-validator';
 
 export class CreateGroupDTO {
 	@IsString()
-	@Length(1, 255)
+	@IsNotEmpty()
 	name: string;
 
 	@IsString()
 	@IsOptional()
-	@Length(0, 500)
 	description?: string;
 
 	@IsBoolean()
-	isPrivate: boolean;
+	@IsOptional()
+	is_private?: boolean;
+
+	@IsInt()
+	@IsOptional()
+	profile_picture?: number;
+
+	@IsInt()
+	@IsOptional()
+	pinned_post?: number;
 }
