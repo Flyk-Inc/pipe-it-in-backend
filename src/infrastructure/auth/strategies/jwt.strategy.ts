@@ -12,7 +12,12 @@ export interface JwtPayload {
   exp: number;
 }
 
-export type SignedInRequest = ExpressRequest & { user: JwtPayload };
+export type SignedInRequest = ExpressRequest & {
+  user: {
+    userId: string;
+    email: string;
+  };
+};
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {

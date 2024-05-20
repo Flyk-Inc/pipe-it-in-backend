@@ -12,10 +12,11 @@ import { AuthController } from './presentation/controllers/auth.controller';
 import { jwtConstants } from './infrastructure/auth/constants';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './infrastructure/auth/strategies/jwt.strategy';
+import { Role } from './infrastructure/auth/roles.entities';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Role]),
     TypeOrmModule.forRoot(dbdatasource),
     JwtModule.register({
       secret: jwtConstants.secret,
