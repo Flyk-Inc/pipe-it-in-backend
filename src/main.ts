@@ -16,6 +16,7 @@ async function bootstrap() {
     .setTitle('Pipe-It-In API')
     .setDescription('API for the Pipe-It-In backend')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
