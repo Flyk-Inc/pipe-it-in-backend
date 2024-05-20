@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Role } from '../../infrastructure/auth/roles.entities';
+import { Group } from '../groups/groups.entities';
 
 @Entity({ name: 'Users' })
 export class User {
@@ -31,6 +32,12 @@ export class User {
   @ManyToMany(() => Role, { eager: true })
   @JoinTable({ name: 'UserRoles' }) // Customize the join table name
   roles: Role[];
+
+  @ManyToMany(() => Group, (group) => group.members)
+  groups: Group[];
+
+  @ManyToMany(() => Group, (group) => group.admins)
+  adminGroups: Group[];
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;

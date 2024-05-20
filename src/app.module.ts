@@ -12,21 +12,31 @@ import { AuthController } from './presentation/controllers/auth.controller';
 import { jwtConstants } from './infrastructure/auth/constants';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './infrastructure/auth/strategies/jwt.strategy';
+import { GroupController } from './presentation/controllers/groups.controller';
+import { GroupService } from './domain/groups/service/groups.service';
+import { Group } from './domain/groups/groups.entities';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([Group]),
     TypeOrmModule.forRoot(dbdatasource),
     JwtModule.register({
       secret: jwtConstants.secret,
       signOptions: { expiresIn: jwtConstants.expiresIn },
     }),
   ],
-  controllers: [AppController, UsersController, AuthController],
+  controllers: [
+    AppController,
+    UsersController,
+    AuthController,
+    GroupController,
+  ],
   providers: [
     AppService,
     AuthService,
     UsersService,
+    GroupService,
     // Passport Strategies
     LocalStrategy,
     JwtStrategy,
