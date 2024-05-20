@@ -18,30 +18,30 @@ import { GroupService } from './domain/groups/service/groups.service';
 import { Group } from './domain/groups/groups.entities';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([User, Role]),
-    TypeOrmModule.forFeature([User]),
-    TypeOrmModule.forFeature([Group]),
-    TypeOrmModule.forRoot(dbdatasource),
-    JwtModule.register({
-      secret: jwtConstants.secret,
-      signOptions: { expiresIn: jwtConstants.expiresIn },
-    }),
-  ],
-  controllers: [
-    AppController,
-    UsersController,
-    AuthController,
-    GroupController,
-  ],
-  providers: [
-    AppService,
-    AuthService,
-    UsersService,
-    GroupService,
-    // Passport Strategies
-    LocalStrategy,
-    JwtStrategy,
-  ],
+	imports: [
+		TypeOrmModule.forFeature([User, Role]),
+		TypeOrmModule.forFeature([User]),
+		TypeOrmModule.forFeature([Group]),
+		TypeOrmModule.forRoot(dbdatasource),
+		JwtModule.register({
+			secret: jwtConstants.secret,
+			signOptions: { expiresIn: jwtConstants.expiresIn },
+		}),
+	],
+	controllers: [
+		AppController,
+		UsersController,
+		AuthController,
+		GroupController,
+	],
+	providers: [
+		AppService,
+		AuthService,
+		UsersService,
+		GroupService,
+		// Passport Strategies
+		LocalStrategy,
+		JwtStrategy,
+	],
 })
 export class AppModule {}
