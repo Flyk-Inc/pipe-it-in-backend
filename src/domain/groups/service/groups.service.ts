@@ -137,7 +137,7 @@ export class GroupService {
 			relations: ['group'],
 			loadEagerRelations: false,
 		});
-		
+
 		return groupMembers.map(member => member.group);
 	}
 }

@@ -17,13 +17,13 @@ export class CreateGroupDTO {
 
 	@IsBoolean()
 	@IsOptional()
-	is_private?: boolean;
+	isPrivate?: boolean;
 
 	@IsInt()
 	@IsOptional()
-	profile_picture?: number;
+	profilePicture?: number;
 
 	@IsInt()
 	@IsOptional()
-	pinned_post?: number;
+	pinnedPost?: number;
 }
