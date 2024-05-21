@@ -2,7 +2,6 @@ import {
 	BadRequestException,
 	ForbiddenException,
 	Injectable,
-	InternalServerErrorException,
 	NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -62,9 +61,7 @@ export class GroupService {
 			where: { groupId: groupId, userId: userId },
 		});
 		if (existingMember) {
-			throw new InternalServerErrorException(
-				'User is already a member of this group'
-			);
+			throw new BadRequestException('User is already a member of this group');
 		}
 
 		const groupMember = this.groupMemberRepository.create({
@@ -128,9 +125,7 @@ export class GroupService {
 			where: { groupId: groupId, userId: userId },
 		});
 		if (!groupMember) {
-			throw new InternalServerErrorException(
-				'User is not a member of this group'
-			);
+			throw new BadRequestException('User is not a member of this group');
 		}
 
 		await this.groupMemberRepository.remove(groupMember);

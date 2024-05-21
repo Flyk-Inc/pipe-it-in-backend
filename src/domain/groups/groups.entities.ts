@@ -17,16 +17,16 @@ export class Group {
 	name: string;
 
 	@Column({ type: 'text', nullable: true })
-	description: string;
+	description?: string;
 
 	@Column({ type: 'boolean', default: false })
 	isPrivate: boolean;
 
 	@Column({ nullable: true })
-	profilePicture: number;
+	profilePicture?: number;
 
 	@Column({ nullable: true })
-	pinnedPost: number;
+	pinnedPost?: number;
 
 	@Column()
 	creatorId: number;

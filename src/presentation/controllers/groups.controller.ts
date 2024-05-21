@@ -3,7 +3,6 @@ import {
 	Controller,
 	Delete,
 	Get,
-	InternalServerErrorException,
 	Param,
 	ParseIntPipe,
 	Post,
@@ -46,12 +45,8 @@ export class GroupController {
 		@Request() req: SignedInRequest,
 		@Body() createGroupDTO: CreateGroupDTO
 	) {
-		try {
-			const userId = req.user.userId;
-			return await this.groupService.createGroup(userId, createGroupDTO);
-		} catch (error) {
-			throw new InternalServerErrorException('Internal server error');
-		}
+		const userId = req.user.userId;
+		return await this.groupService.createGroup(userId, createGroupDTO);
 	}
 
 	@UseGuards(JwtAuthGuard)
@@ -63,12 +58,8 @@ export class GroupController {
 		@Request() req: SignedInRequest,
 		@Param('groupId', ParseIntPipe) groupId: number
 	) {
-		try {
-			const userId = req.user.userId;
-			return await this.groupService.joinGroup(userId, groupId);
-		} catch (error) {
-			throw new InternalServerErrorException('Internal server error');
-		}
+		const userId = req.user.userId;
+		return await this.groupService.joinGroup(userId, groupId);
 	}
 
 	@UseGuards(JwtAuthGuard)
@@ -80,12 +71,8 @@ export class GroupController {
 		@Request() req: SignedInRequest,
 		@Param('groupId', ParseIntPipe) groupId: number
 	) {
-		try {
-			const userId = req.user.userId;
-			return await this.groupService.requestAccess(userId, groupId);
-		} catch (error) {
-			throw new InternalServerErrorException('Internal server error');
-		}
+		const userId = req.user.userId;
+		return await this.groupService.requestAccess(userId, groupId);
 	}
 
 	@UseGuards(JwtAuthGuard)
@@ -105,16 +92,8 @@ export class GroupController {
 		@Param('groupId', ParseIntPipe) groupId: number,
 		@Body() updateGroupDTO: UpdateGroupDTO
 	) {
-		try {
-			const userId = req.user.userId;
-			return await this.groupService.updateGroup(
-				userId,
-				groupId,
-				updateGroupDTO
-			);
-		} catch (error) {
-			throw new InternalServerErrorException('Internal server error');
-		}
+		const userId = req.user.userId;
+		return await this.groupService.updateGroup(userId, groupId, updateGroupDTO);
 	}
 
 	@UseGuards(JwtAuthGuard)
@@ -126,12 +105,8 @@ export class GroupController {
 		@Request() req: SignedInRequest,
 		@Param('groupId', ParseIntPipe) groupId: number
 	) {
-		try {
-			const userId = req.user.userId;
-			return await this.groupService.leaveGroup(userId, groupId);
-		} catch (error) {
-			throw new InternalServerErrorException('Internal server error');
-		}
+		const userId = req.user.userId;
+		return await this.groupService.leaveGroup(userId, groupId);
 	}
 
 	@UseGuards(JwtAuthGuard)
@@ -143,11 +118,7 @@ export class GroupController {
 	})
 	@ApiResponse({ status: 500, description: 'Internal server error' })
 	async getUserGroups(@Request() req: SignedInRequest) {
-		try {
-			const userId = req.user.userId;
-			return await this.groupService.getUserGroups(userId);
-		} catch (error) {
-			throw new InternalServerErrorException('Internal server error');
-		}
+		const userId = req.user.userId;
+		return await this.groupService.getUserGroups(userId);
 	}
 }
