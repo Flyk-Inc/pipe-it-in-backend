@@ -135,7 +135,9 @@ export class GroupService {
 		const groupMembers = await this.groupMemberRepository.find({
 			where: { userId: userId },
 			relations: ['group'],
+			loadEagerRelations: false,
 		});
+		
 		return groupMembers.map(member => member.group);
 	}
 }
