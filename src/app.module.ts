@@ -13,24 +13,37 @@ import { jwtConstants } from './infrastructure/auth/constants';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './infrastructure/auth/strategies/jwt.strategy';
 import { Role } from './infrastructure/auth/roles.entities';
+import { GroupController } from './presentation/controllers/groups.controller';
+import { GroupService } from './domain/groups/service/groups.service';
+import { Group } from './domain/groups/groups.entities';
+import { GroupMember } from './domain/groups/groupMembers.entities';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([User, Role]),
-    TypeOrmModule.forRoot(dbdatasource),
-    JwtModule.register({
-      secret: jwtConstants.secret,
-      signOptions: { expiresIn: jwtConstants.expiresIn },
-    }),
-  ],
-  controllers: [AppController, UsersController, AuthController],
-  providers: [
-    AppService,
-    AuthService,
-    UsersService,
-    // Passport Strategies
-    LocalStrategy,
-    JwtStrategy,
-  ],
+	imports: [
+		TypeOrmModule.forFeature([User, Role]),
+		TypeOrmModule.forFeature([User]),
+		TypeOrmModule.forFeature([Group]),
+		TypeOrmModule.forFeature([GroupMember]),
+		TypeOrmModule.forRoot(dbdatasource),
+		JwtModule.register({
+			secret: jwtConstants.secret,
+			signOptions: { expiresIn: jwtConstants.expiresIn },
+		}),
+	],
+	controllers: [
+		AppController,
+		UsersController,
+		AuthController,
+		GroupController,
+	],
+	providers: [
+		AppService,
+		AuthService,
+		UsersService,
+		GroupService,
+		// Passport Strategies
+		LocalStrategy,
+		JwtStrategy,
+	],
 })
 export class AppModule {}

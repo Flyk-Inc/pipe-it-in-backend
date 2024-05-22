@@ -8,13 +8,13 @@ import { Roles } from '../../infrastructure/auth/roles.decorator';
 
 @Controller('users')
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+	constructor(private usersService: UsersService) {}
 
-  @UseGuards(RolesGuard)
-  @UseGuards(JwtAuthGuard)
-  @Roles(Role.User)
-  @Get('profile')
-  getProfile(@Request() req: SignedInRequest) {
-    return this.usersService.getUserByEmail(req.user.email);
-  }
+	@UseGuards(RolesGuard)
+	@UseGuards(JwtAuthGuard)
+	@Roles(Role.User)
+	@Get('profile')
+	getProfile(@Request() req: SignedInRequest) {
+		return this.usersService.getUserByEmail(req.user.email);
+	}
 }
