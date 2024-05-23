@@ -21,7 +21,9 @@
     "migrate:generate": "ts-node node_modules/typeorm/cli.js migration:generate -d src/infrastructure/database/data.source.ts ./src/infrastructure/database/migrations/migration",
     "migrate:create": "ts-node node_modules/typeorm/cli.js migration:create ./src/infrastructure/database/migrations/migration",
     "migrate:up": "ts-node node_modules/typeorm/cli.js migration:run -d src/infrastructure/database/data.source.ts",
-    "migration:down": "ts-node node_modules/typeorm/cli.js migration:revert -d src/infrastructure/database/data.source.ts"
+    "migration:down": "ts-node node_modules/typeorm/cli.js migration:revert -d src/infrastructure/database/data.source.ts",
+    "seed:create": "ts-node node_modules/typeorm/cli.js migration:create ./src/infrastructure/database/migrations/migration",
+    "seed:run": "ts-node node_modules/typeorm/cli.js migration:run -d src/infrastructure/database/seeders.data.source.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
