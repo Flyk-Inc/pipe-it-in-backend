@@ -26,6 +26,8 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+    - name: installing dependencies for CI
+      run: npm ci
     - name: Lint check
       run: npm run lint
     - name: Formatting check
