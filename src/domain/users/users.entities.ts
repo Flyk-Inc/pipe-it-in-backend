@@ -9,6 +9,7 @@ import {
 import { Role } from '../../infrastructure/auth/roles.entities';
 import { GroupMember } from '../groups/groupMembers.entities';
 import { UserFollows } from './user_follows.entities';
+import { FollowRequest } from './follow_requests.entities';
 
 @Entity({ name: 'Users' })
 export class User {
@@ -41,10 +42,16 @@ export class User {
 	isPrivate: boolean;
 
 	@OneToMany(() => UserFollows, userFollow => userFollow.follower)
-	followers: UserFollows[];
+	following: UserFollows[];
 
 	@OneToMany(() => UserFollows, userFollow => userFollow.user)
-	followees: UserFollows[];
+	followers: UserFollows[];
+
+	@OneToMany(() => FollowRequest, followRequest => followRequest.follower)
+	sentFollowRequests: FollowRequest[];
+
+	@OneToMany(() => FollowRequest, followRequest => followRequest.user)
+	receivedFollowRequests: FollowRequest[];
 
 	@Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
 	updatedAt: Date;

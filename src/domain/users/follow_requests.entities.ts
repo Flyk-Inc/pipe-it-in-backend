@@ -1,4 +1,5 @@
 import {
+	Column,
 	CreateDateColumn,
 	Entity,
 	JoinColumn,
@@ -8,18 +9,21 @@ import {
 } from 'typeorm';
 import { User } from './users.entities';
 
-@Entity('user_follows')
-export class UserFollows {
+@Entity('follow_request')
+export class FollowRequest {
 	@PrimaryGeneratedColumn()
 	id: number;
 
-	@ManyToOne(() => User, user => user.followers)
+	@ManyToOne(() => User, user => user.sentFollowRequests)
 	@JoinColumn({ name: 'follower_id' })
 	follower: User;
 
-	@ManyToOne(() => User, user => user.following)
+	@ManyToOne(() => User, user => user.receivedFollowRequests)
 	@JoinColumn({ name: 'user_id' })
 	user: User;
+
+	@Column({ name: 'is_accepted', type: 'boolean', default: false })
+	isAccepted: boolean;
 
 	@CreateDateColumn({ name: 'created_at' })
 	createdAt: Date;

@@ -18,12 +18,13 @@ import { GroupService } from './domain/groups/service/groups.service';
 import { Group } from './domain/groups/groups.entities';
 import { GroupMember } from './domain/groups/groupMembers.entities';
 import { UserFollowController } from './presentation/controllers/user-follow.controller';
-import { RelationshipService } from './relationship/relationship.service';
+import { RelationshipService } from './domain/users/relationship.service';
 import { UserFollows } from './domain/users/user_follows.entities';
+import { FollowRequest } from './domain/users/follow_requests.entities';
 
 @Module({
 	imports: [
-		TypeOrmModule.forFeature([User, Role, UserFollows]),
+		TypeOrmModule.forFeature([User, Role, UserFollows, FollowRequest]),
 		TypeOrmModule.forFeature([User]),
 		TypeOrmModule.forFeature([Group]),
 		TypeOrmModule.forFeature([GroupMember]),
