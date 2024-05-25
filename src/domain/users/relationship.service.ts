@@ -189,8 +189,7 @@ export class RelationshipService {
 		// Ensure the user is the follower or the user of the request, or an admin
 		if (
 			request.follower.id !== userId &&
-			request.user.id !== userId &&
-			user.roles.some(role => role.name === 'admin') === false
+			request.user.id !== userId
 		) {
 			console.log(userId, request.follower.id, request.user.id);
 			throw new BadRequestException('Invalid request');
