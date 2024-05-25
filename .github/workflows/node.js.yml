@@ -28,7 +28,9 @@ jobs:
         cache: 'npm'
     - name: installing dependencies for CI
       run: npm ci
-    - name: linting and formatting
+    - name: Lint check
       run: npm run lint
+    - name: Formatting check
+      run: npm run format
     - name: tests
       run: npm run test

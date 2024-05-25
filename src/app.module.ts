@@ -17,10 +17,14 @@ import { GroupController } from './presentation/controllers/groups.controller';
 import { GroupService } from './domain/groups/service/groups.service';
 import { Group } from './domain/groups/groups.entities';
 import { GroupMember } from './domain/groups/groupMembers.entities';
+import { UserFollowController } from './presentation/controllers/user-follow.controller';
+import { RelationshipService } from './domain/users/relationship.service';
+import { UserFollows } from './domain/users/user_follows.entities';
+import { FollowRequest } from './domain/users/follow_requests.entities';
 
 @Module({
 	imports: [
-		TypeOrmModule.forFeature([User, Role]),
+		TypeOrmModule.forFeature([User, Role, UserFollows, FollowRequest]),
 		TypeOrmModule.forFeature([User]),
 		TypeOrmModule.forFeature([Group]),
 		TypeOrmModule.forFeature([GroupMember]),
@@ -35,6 +39,7 @@ import { GroupMember } from './domain/groups/groupMembers.entities';
 		UsersController,
 		AuthController,
 		GroupController,
+		UserFollowController,
 	],
 	providers: [
 		AppService,
@@ -44,6 +49,7 @@ import { GroupMember } from './domain/groups/groupMembers.entities';
 		// Passport Strategies
 		LocalStrategy,
 		JwtStrategy,
+		RelationshipService,
 	],
 })
 export class AppModule {}
