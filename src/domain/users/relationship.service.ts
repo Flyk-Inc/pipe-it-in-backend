@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+	BadRequestException,
+	Injectable,
+	NotFoundException,
+} from '@nestjs/common';
 import { User } from './users.entities';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -24,11 +28,11 @@ export class RelationshipService {
 	async followUser(followerId: number, userId: number) {
 		const follower = await this.userRepository.findOneBy({ id: followerId });
 		if (!follower) {
-			throw new Error("Follower doesn't exist");
+			throw new NotFoundException("Follower doesn't exist");
 		}
 		const user = await this.userRepository.findOneBy({ id: userId });
 		if (!user) {
-			throw new Error("User doesn't exist");
+			throw new NotFoundException("User doesn't exist");
 		}
 
 		if (user.isPrivate) {
@@ -66,10 +70,10 @@ export class RelationshipService {
 		]);
 
 		if (!follower) {
-			throw new BadRequestException("Follower doesn't exist");
+			throw new NotFoundException("Follower doesn't exist");
 		}
 		if (!user) {
-			throw new BadRequestException("User doesn't exist");
+			throw new NotFoundException("User doesn't exist");
 		}
 
 		const alreadyFollowing = await this.userFollowsRepository.findOne({
@@ -123,10 +127,10 @@ export class RelationshipService {
 		]);
 
 		if (!follower) {
-			throw new BadRequestException("Follower doesn't exist");
+			throw new NotFoundException("Follower doesn't exist");
 		}
 		if (!user) {
-			throw new BadRequestException("User doesn't exist");
+			throw new NotFoundException("User doesn't exist");
 		}
 
 		if (user.isPrivate === false) {
@@ -173,9 +177,8 @@ export class RelationshipService {
 			where: { id: requestId },
 			relations: ['follower', 'user'],
 		});
-		console.log(request);
 		if (!request) {
-			throw new BadRequestException('No follow request');
+			throw new NotFoundException('No follow request');
 		}
 
 		const user = await this.userRepository.findOne({
@@ -183,7 +186,7 @@ export class RelationshipService {
 			relations: ['roles'],
 		});
 		if (!user) {
-			throw new BadRequestException("User doesn't exist");
+			throw new NotFoundException("User doesn't exist");
 		}
 
 		// Ensure the user is the follower or the user of the request, or an admin
@@ -191,7 +194,6 @@ export class RelationshipService {
 			request.follower.id !== userId &&
 			request.user.id !== userId
 		) {
-			console.log(userId, request.follower.id, request.user.id);
 			throw new BadRequestException('Invalid request');
 		}
 
@@ -213,7 +215,7 @@ export class RelationshipService {
 		});
 
 		if (!request) {
-			throw new BadRequestException('No follow request');
+			throw new NotFoundException('No follow request');
 		}
 
 		const deleteResult = await this.followRequestRepository.delete(requestId);

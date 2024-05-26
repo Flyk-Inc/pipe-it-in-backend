@@ -21,11 +21,13 @@ import { UserFollowController } from './presentation/controllers/user-follow.con
 import { RelationshipService } from './domain/users/relationship.service';
 import { UserFollows } from './domain/users/user_follows.entities';
 import { FollowRequest } from './domain/users/follow_requests.entities';
+import { PostsController } from './presentation/controllers/posts.controller';
+import { PostsService } from './domain/content/posts.service';
+import { Posts } from './domain/content/posts.entities';
 
 @Module({
 	imports: [
-		TypeOrmModule.forFeature([User, Role, UserFollows, FollowRequest]),
-		TypeOrmModule.forFeature([User]),
+		TypeOrmModule.forFeature([User, Role, UserFollows, FollowRequest, Posts]),
 		TypeOrmModule.forFeature([Group]),
 		TypeOrmModule.forFeature([GroupMember]),
 		TypeOrmModule.forRoot(dbdatasource),
@@ -40,6 +42,7 @@ import { FollowRequest } from './domain/users/follow_requests.entities';
 		AuthController,
 		GroupController,
 		UserFollowController,
+		PostsController,
 	],
 	providers: [
 		AppService,
@@ -50,6 +53,7 @@ import { FollowRequest } from './domain/users/follow_requests.entities';
 		LocalStrategy,
 		JwtStrategy,
 		RelationshipService,
+		PostsService,
 	],
 })
 export class AppModule {}
