@@ -32,7 +32,6 @@ export class PostsController {
 		@Body() post: CreatePostDto,
 		@Request() req: SignedInRequest
 	) {
-		console.log(req.user);
 		return await this.postsService.createPost(post, req.user.userId);
 	}
 

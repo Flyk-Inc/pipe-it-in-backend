@@ -177,7 +177,6 @@ export class RelationshipService {
 			where: { id: requestId },
 			relations: ['follower', 'user'],
 		});
-		console.log(request);
 		if (!request) {
 			throw new NotFoundException('No follow request');
 		}
@@ -196,7 +195,6 @@ export class RelationshipService {
 			request.user.id !== userId &&
 			user.roles.some(role => role.name === 'admin') === false
 		) {
-			console.log(userId, request.follower.id, request.user.id);
 			throw new BadRequestException('Invalid request');
 		}
 

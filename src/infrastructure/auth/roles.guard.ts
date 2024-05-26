@@ -24,7 +24,6 @@ export class RolesGuard implements CanActivate {
 		if (!requiredRoles) {
 			return true;
 		}
-		console.log(context.switchToHttp().getRequest().user);
 		const { user: jwtUser } = context.switchToHttp().getRequest();
 		const user = await this.userService.getUserByEmail(jwtUser.email);
 		for (const role of user.roles) {

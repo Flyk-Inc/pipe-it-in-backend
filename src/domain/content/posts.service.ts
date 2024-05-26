@@ -19,16 +19,23 @@ export class PostsService {
 	) {}
 
 	async createPost(post: CreatePostDto, creatorId: number): Promise<Posts> {
-		console.log(post);
 		return await this.postsRepository.save({
 			...post,
 			user: { id: creatorId },
 		});
 	}
 
+	/**
+	 * Edit a post
+	 * @param postId
+	 * @param postDTO the new post data
+	 * @param userId the user id of the user making the request,
+	 * to check if they have the right to edit the post.
+	 * Has to be the creator of the post or an admin
+	 */
 	async editPost(
 		postId: number,
-		post: CreatePostDto,
+		postDTO: CreatePostDto,
 		userId: number
 	): Promise<Posts> {
 		const postToEdit = await this.postsRepository.findOne({
@@ -41,15 +48,14 @@ export class PostsService {
 			where: { id: userId },
 			relations: ['roles'],
 		});
+		// Check if the user is the creator of the post or an admin to edit the post
 		if (
 			postToEdit.user.id !== userId &&
 			!user.roles.some(role => role.name === 'admin')
 		) {
 			throw new BadRequestException('Invalid Request');
 		}
-		console.log(postId, post);
-		const updatedPost = await this.postsRepository.update(postId, post);
-
+		const updatedPost = await this.postsRepository.update(postId, postDTO);
 		if (!updatedPost.affected) {
 			throw new Error('Post not found');
 		}
@@ -63,7 +69,6 @@ export class PostsService {
 	 * @param connectedUserId the user id of the user making the request
 	 */
 	async getPostsByUser(userId: number, connectedUserId: number) {
-		console.log(userId, connectedUserId);
 		return await this.postsRepository.find({
 			where: {
 				user: {
@@ -90,11 +95,11 @@ export class PostsService {
 		if (!post) {
 			throw new NotFoundException('Post not found');
 		}
-		console.log(post);
 		const user = await this.userRepository.findOne({
 			where: { id: connectedUserId },
 			relations: ['roles'],
 		});
+		// Check if the user is the creator of the post or an admin to edit the post
 		if (
 			post.user.id !== connectedUserId &&
 			!user.roles.some(role => role.name === 'admin')
