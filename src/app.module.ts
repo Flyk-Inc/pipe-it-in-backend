@@ -24,10 +24,20 @@ import { FollowRequest } from './domain/users/follow_requests.entities';
 import { PostsController } from './presentation/controllers/posts.controller';
 import { PostsService } from './domain/content/posts.service';
 import { Posts } from './domain/content/posts.entities';
+import { Comment } from './domain/content/comments/comments.entities';
+import { CommentController } from './presentation/controllers/comments.controller';
+import { CommentService } from './domain/content/comments/comments.service';
 
 @Module({
 	imports: [
-		TypeOrmModule.forFeature([User, Role, UserFollows, FollowRequest, Posts]),
+		TypeOrmModule.forFeature([
+			User,
+			Role,
+			UserFollows,
+			FollowRequest,
+			Posts,
+			Comment,
+		]),
 		TypeOrmModule.forFeature([Group]),
 		TypeOrmModule.forFeature([GroupMember]),
 		TypeOrmModule.forRoot(dbdatasource),
@@ -43,6 +53,7 @@ import { Posts } from './domain/content/posts.entities';
 		GroupController,
 		UserFollowController,
 		PostsController,
+		CommentController,
 	],
 	providers: [
 		AppService,
@@ -54,6 +65,7 @@ import { Posts } from './domain/content/posts.entities';
 		JwtStrategy,
 		RelationshipService,
 		PostsService,
+		CommentService,
 	],
 })
 export class AppModule {}
