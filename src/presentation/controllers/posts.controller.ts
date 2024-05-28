@@ -15,13 +15,15 @@ import { JwtAuthGuard } from '../../infrastructure/auth/guards/jwt-auth.guard';
 import { SignedInRequest } from '../../infrastructure/auth/strategies/jwt.strategy';
 import { CreatePostDto } from '../../domain/content/create-post.dto';
 import { CommentService } from '../../domain/content/comments/comments.service';
+import { LikeService } from '../../domain/content/likes/likes.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('posts')
 export class PostsController {
 	constructor(
 		private readonly postsService: PostsService,
-		private readonly commentService: CommentService
+		private readonly commentService: CommentService,
+		private readonly likeService: LikeService
 	) {}
 
 	@Get('/user/:userId')
@@ -60,5 +62,13 @@ export class PostsController {
 	@Get(':id/comments')
 	async getCommentsByPostId(@Param('id', ParseIntPipe) postId: number) {
 		return await this.commentService.getCommentsByPostId(postId);
+	}
+
+	@Post(':id/like')
+	async toggleLike(
+		@Param('id', ParseIntPipe) postId: number,
+		@Request() req: SignedInRequest
+	) {
+		return await this.likeService.toggleLike(req.user.userId, postId);
 	}
 }
