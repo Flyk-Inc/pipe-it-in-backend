@@ -4,6 +4,7 @@ import {
 	Delete,
 	Get,
 	Param,
+	ParseIntPipe,
 	Patch,
 	Post,
 	Request,
@@ -13,11 +14,15 @@ import { PostsService } from '../../domain/content/posts.service';
 import { JwtAuthGuard } from '../../infrastructure/auth/guards/jwt-auth.guard';
 import { SignedInRequest } from '../../infrastructure/auth/strategies/jwt.strategy';
 import { CreatePostDto } from '../../domain/content/create-post.dto';
+import { CommentService } from '../../domain/content/comments/comments.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('posts')
 export class PostsController {
-	constructor(private readonly postsService: PostsService) {}
+	constructor(
+		private readonly postsService: PostsService,
+		private readonly commentService: CommentService
+	) {}
 
 	@Get('/user/:userId')
 	async getPostsToDisplayByUser(@Request() req: SignedInRequest) {
@@ -50,5 +55,10 @@ export class PostsController {
 		@Request() req: SignedInRequest
 	) {
 		return await this.postsService.deletePost(postId, req.user.userId);
+	}
+
+	@Get(':id/comments')
+	async getCommentsByPostId(@Param('id', ParseIntPipe) postId: number) {
+		return await this.commentService.getCommentsByPostId(postId);
 	}
 }

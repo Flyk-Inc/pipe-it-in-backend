@@ -1,13 +1,15 @@
 import {
-	Entity,
-	PrimaryGeneratedColumn,
 	Column,
 	CreateDateColumn,
-	ManyToOne,
+	Entity,
 	JoinColumn,
+	ManyToOne,
+	OneToMany,
+	PrimaryGeneratedColumn,
 	UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../users/users.entities';
+import { Comment } from './comments/comments.entities';
 
 @Entity('posts')
 export class Posts {
@@ -24,8 +26,9 @@ export class Posts {
 	@Column({ name: 'group_id', type: 'int', nullable: true })
 	groupId: number;
 
-	// @OneToMany(() => Comment, comment => comment.post)
-	// comments: Comment[];
+	@OneToMany(() => Comment, comment => comment.post)
+	comments: Comment[];
+
 	//
 	// @OneToMany(() => Like, like => like.post)
 	// likes: Like[];

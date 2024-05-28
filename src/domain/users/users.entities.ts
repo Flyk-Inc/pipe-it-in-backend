@@ -11,6 +11,7 @@ import { GroupMember } from '../groups/groupMembers.entities';
 import { UserFollows } from './user_follows.entities';
 import { FollowRequest } from './follow_requests.entities';
 import { Posts } from '../content/posts.entities';
+import { Comment } from '../content/comments/comments.entities';
 
 @Entity({ name: 'Users' })
 export class User {
@@ -38,6 +39,9 @@ export class User {
 
 	@OneToMany(() => GroupMember, groupMember => groupMember.user)
 	groups: GroupMember[];
+
+	@OneToMany(() => Comment, comment => comment.user)
+	comments: Comment[];
 
 	@Column({ default: false })
 	isPrivate: boolean;
