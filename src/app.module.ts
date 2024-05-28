@@ -29,6 +29,8 @@ import { CommentController } from './presentation/controllers/comments.controlle
 import { CommentService } from './domain/content/comments/comments.service';
 import { LikeService } from './domain/content/likes/likes.service';
 import { Like } from './domain/content/likes/likes.entities';
+import { Reaction } from './domain/content/comments/reactions/reactions.entities';
+import { ReactionService } from './domain/content/comments/reactions/reactions.service';
 
 @Module({
 	imports: [
@@ -40,6 +42,7 @@ import { Like } from './domain/content/likes/likes.entities';
 			Posts,
 			Comment,
 			Like,
+			Reaction,
 		]),
 		TypeOrmModule.forFeature([Group]),
 		TypeOrmModule.forFeature([GroupMember]),
@@ -70,6 +73,7 @@ import { Like } from './domain/content/likes/likes.entities';
 		PostsService,
 		CommentService,
 		LikeService,
+		ReactionService,
 	],
 })
 export class AppModule {}

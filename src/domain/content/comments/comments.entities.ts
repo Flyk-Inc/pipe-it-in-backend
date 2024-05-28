@@ -1,15 +1,16 @@
 import {
-	Entity,
-	PrimaryGeneratedColumn,
 	Column,
 	CreateDateColumn,
-	UpdateDateColumn,
-	ManyToOne,
+	Entity,
 	JoinColumn,
+	ManyToOne,
 	OneToMany,
+	PrimaryGeneratedColumn,
+	UpdateDateColumn,
 } from 'typeorm';
 import { Posts } from '../posts.entities';
 import { User } from '../../users/users.entities';
+import { Reaction } from './reactions/reactions.entities';
 
 @Entity('comments')
 export class Comment {
@@ -39,4 +40,7 @@ export class Comment {
 
 	@OneToMany(() => Comment, comment => comment.parent)
 	replies: Comment[];
+
+	@OneToMany(() => Reaction, reaction => reaction.comment)
+	reactions: Reaction[];
 }

@@ -15,12 +15,16 @@ import { SignedInRequest } from '../../infrastructure/auth/strategies/jwt.strate
 import { CreateCommentDTO } from '../../domain/content/comments/createCommentDTO';
 import { CommentService } from '../../domain/content/comments/comments.service';
 import { UpdateCommentDTO } from '../../domain/content/comments/updateCommentDTO';
+import { ReactionService } from '../../domain/content/comments/reactions/reactions.service';
 
 @ApiTags('comments')
 @ApiBearerAuth()
 @Controller('comments')
 export class CommentController {
-	constructor(private commentService: CommentService) {}
+	constructor(
+		private commentService: CommentService,
+		private readonly reactionService: ReactionService
+	) {}
 
 	@UseGuards(JwtAuthGuard)
 	@Post()
@@ -69,5 +73,31 @@ export class CommentController {
 			...createCommentDTO,
 			parentId: commentId,
 		});
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@Post(':id/like')
+	async likeComment(
+		@Param('id', ParseIntPipe) commentId: number,
+		@Request() req: SignedInRequest
+	) {
+		return await this.reactionService.toggleReaction(
+			req.user.userId,
+			commentId,
+			true
+		);
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@Post(':id/dislike')
+	async dislikeComment(
+		@Param('id', ParseIntPipe) commentId: number,
+		@Request() req: SignedInRequest
+	) {
+		return await this.reactionService.toggleReaction(
+			req.user.userId,
+			commentId,
+			false
+		);
 	}
 }
