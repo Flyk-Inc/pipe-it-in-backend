@@ -76,28 +76,42 @@ export class CommentController {
 	}
 
 	@UseGuards(JwtAuthGuard)
-	@Post(':id/like')
-	async likeComment(
+	@Post(':id/react')
+	async createReaction(
 		@Param('id', ParseIntPipe) commentId: number,
-		@Request() req: SignedInRequest
+		@Request() req: SignedInRequest,
+		@Body() body: { isLike: boolean }
 	) {
-		return await this.reactionService.toggleReaction(
-			req.user.userId,
+		const userId = req.user.userId;
+		return await this.reactionService.createReaction(
+			userId,
 			commentId,
-			true
+			body.isLike
 		);
 	}
 
 	@UseGuards(JwtAuthGuard)
-	@Post(':id/dislike')
-	async dislikeComment(
+	@Patch(':id/react')
+	async updateReaction(
+		@Param('id', ParseIntPipe) commentId: number,
+		@Request() req: SignedInRequest,
+		@Body() body: { isLike: boolean }
+	) {
+		const userId = req.user.userId;
+		return await this.reactionService.updateReaction(
+			userId,
+			commentId,
+			body.isLike
+		);
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@Delete(':id/react')
+	async deleteReaction(
 		@Param('id', ParseIntPipe) commentId: number,
 		@Request() req: SignedInRequest
 	) {
-		return await this.reactionService.toggleReaction(
-			req.user.userId,
-			commentId,
-			false
-		);
+		const userId = req.user.userId;
+		return await this.reactionService.deleteReaction(userId, commentId);
 	}
 }

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+	ConflictException,
+	Injectable,
+	NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Reaction } from './reactions.entities';
@@ -16,7 +20,43 @@ export class ReactionService {
 		private userRepository: Repository<User>
 	) {}
 
-	async toggleReaction(
+	async createReaction(
+		userId: number,
+		commentId: number,
+		isLike: boolean
+	): Promise<{ message: string }> {
+		const user = await this.userRepository.findOne({ where: { id: userId } });
+		if (!user) {
+			throw new NotFoundException('User not found');
+		}
+
+		const comment = await this.commentRepository.findOne({
+			where: { id: commentId },
+		});
+		if (!comment) {
+			throw new NotFoundException('Comment not found');
+		}
+
+		const existingReaction = await this.reactionRepository.findOne({
+			where: { user: { id: userId }, comment: { id: commentId }, isLike },
+		});
+
+		if (existingReaction) {
+			throw new ConflictException(
+				`Comment already ${isLike ? 'liked' : 'disliked'}`
+			);
+		} else {
+			const reaction = this.reactionRepository.create({
+				user,
+				comment,
+				isLike,
+			});
+			await this.reactionRepository.save(reaction);
+			return { message: `Comment ${isLike ? 'liked' : 'disliked'}` };
+		}
+	}
+
+	async updateReaction(
 		userId: number,
 		commentId: number,
 		isLike: boolean
@@ -37,26 +77,34 @@ export class ReactionService {
 			where: { user: { id: userId }, comment: { id: commentId } },
 		});
 
-		if (existingReaction) {
-			if (existingReaction.isLike === isLike) {
-				// Remove the existing reaction if it matches the current reaction type (like or dislike)
-				await this.reactionRepository.remove(existingReaction);
-				return { message: isLike ? 'Like removed' : 'Dislike removed' };
-			} else {
-				// Switch the reaction type
-				existingReaction.isLike = isLike;
-				await this.reactionRepository.save(existingReaction);
-				return { message: isLike ? 'Switched to like' : 'Switched to dislike' };
-			}
-		} else {
-			// Create a new reaction if no existing reaction is found
-			const reaction = this.reactionRepository.create({
-				user,
-				comment,
-				isLike,
-			});
-			await this.reactionRepository.save(reaction);
-			return { message: isLike ? 'Comment liked' : 'Comment disliked' };
+		if (!existingReaction) {
+			throw new NotFoundException('Reaction not found');
 		}
+
+		if (existingReaction.isLike === isLike) {
+			throw new ConflictException(
+				`Comment is already ${isLike ? 'liked' : 'disliked'}`
+			);
+		}
+
+		existingReaction.isLike = isLike;
+		await this.reactionRepository.save(existingReaction);
+		return { message: isLike ? 'Switched to like' : 'Switched to dislike' };
+	}
+
+	async deleteReaction(
+		userId: number,
+		commentId: number
+	): Promise<{ message: string }> {
+		const existingReaction = await this.reactionRepository.findOne({
+			where: { user: { id: userId }, comment: { id: commentId } },
+		});
+
+		if (!existingReaction) {
+			throw new NotFoundException('Reaction not found');
+		}
+
+		await this.reactionRepository.remove(existingReaction);
+		return { message: 'Reaction removed' };
 	}
 }

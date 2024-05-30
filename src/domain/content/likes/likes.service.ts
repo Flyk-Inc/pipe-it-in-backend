@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+	ConflictException,
+	Injectable,
+	NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Like } from './likes.entities';
@@ -16,10 +20,7 @@ export class LikeService {
 		private userRepository: Repository<User>
 	) {}
 
-	async toggleLike(
-		userId: number,
-		postId: number
-	): Promise<{ message: string }> {
+	async likePost(userId: number, postId: number): Promise<{ message: string }> {
 		const user = await this.userRepository.findOne({ where: { id: userId } });
 		if (!user) {
 			throw new NotFoundException('User not found');
@@ -35,12 +36,27 @@ export class LikeService {
 		});
 
 		if (existingLike) {
-			await this.likeRepository.remove(existingLike);
-			return { message: 'Post unliked successfully' };
+			throw new ConflictException('Post already liked');
 		} else {
 			const like = this.likeRepository.create({ user, post });
 			await this.likeRepository.save(like);
-			return { message: 'Post liked successfully' };
+			return { message: 'Post liked' };
 		}
+	}
+
+	async unlikePost(
+		userId: number,
+		postId: number
+	): Promise<{ message: string }> {
+		const existingLike = await this.likeRepository.findOne({
+			where: { user: { id: userId }, post: { id: postId } },
+		});
+
+		if (!existingLike) {
+			throw new NotFoundException('Like not found');
+		}
+
+		await this.likeRepository.remove(existingLike);
+		return { message: 'Like removed' };
 	}
 }

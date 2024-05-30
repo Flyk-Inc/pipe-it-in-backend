@@ -65,10 +65,18 @@ export class PostsController {
 	}
 
 	@Post(':id/like')
-	async toggleLike(
+	async createLike(
 		@Param('id', ParseIntPipe) postId: number,
 		@Request() req: SignedInRequest
 	) {
-		return await this.likeService.toggleLike(req.user.userId, postId);
+		return await this.likeService.likePost(req.user.userId, postId);
+	}
+
+	@Delete(':id/like')
+	async deleteLike(
+		@Param('id', ParseIntPipe) postId: number,
+		@Request() req: SignedInRequest
+	) {
+		return await this.likeService.unlikePost(req.user.userId, postId);
 	}
 }
