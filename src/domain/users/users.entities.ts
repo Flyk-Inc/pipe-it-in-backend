@@ -12,6 +12,8 @@ import { UserFollows } from './user_follows.entities';
 import { FollowRequest } from './follow_requests.entities';
 import { Posts } from '../content/posts.entities';
 import { Comment } from '../content/comments/comments.entities';
+import { Like } from '../content/likes/likes.entities';
+import { Reaction } from '../content/comments/reactions/reactions.entities';
 
 @Entity({ name: 'Users' })
 export class User {
@@ -43,6 +45,9 @@ export class User {
 	@OneToMany(() => Comment, comment => comment.user)
 	comments: Comment[];
 
+	@OneToMany(() => Reaction, reaction => reaction.user)
+	reactions: Reaction[];
+
 	@Column({ default: false })
 	isPrivate: boolean;
 
@@ -60,6 +65,9 @@ export class User {
 
 	@OneToMany(() => Posts, post => post.user)
 	posts: Posts[];
+
+	@OneToMany(() => Like, like => like.user)
+	likes: Like[];
 
 	@Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
 	updatedAt: Date;

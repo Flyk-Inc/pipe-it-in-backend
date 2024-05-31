@@ -27,6 +27,10 @@ import { Posts } from './domain/content/posts.entities';
 import { Comment } from './domain/content/comments/comments.entities';
 import { CommentController } from './presentation/controllers/comments.controller';
 import { CommentService } from './domain/content/comments/comments.service';
+import { LikeService } from './domain/content/likes/likes.service';
+import { Like } from './domain/content/likes/likes.entities';
+import { Reaction } from './domain/content/comments/reactions/reactions.entities';
+import { ReactionService } from './domain/content/comments/reactions/reactions.service';
 
 @Module({
 	imports: [
@@ -37,6 +41,8 @@ import { CommentService } from './domain/content/comments/comments.service';
 			FollowRequest,
 			Posts,
 			Comment,
+			Like,
+			Reaction,
 		]),
 		TypeOrmModule.forFeature([Group]),
 		TypeOrmModule.forFeature([GroupMember]),
@@ -66,6 +72,8 @@ import { CommentService } from './domain/content/comments/comments.service';
 		RelationshipService,
 		PostsService,
 		CommentService,
+		LikeService,
+		ReactionService,
 	],
 })
 export class AppModule {}
