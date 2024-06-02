@@ -7,6 +7,7 @@ import {
 	ParseIntPipe,
 	Patch,
 	Post,
+	Query,
 	Request,
 	UseGuards,
 } from '@nestjs/common';
@@ -16,6 +17,7 @@ import { SignedInRequest } from '../../infrastructure/auth/strategies/jwt.strate
 import { CreatePostDto } from '../../domain/content/create-post.dto';
 import { CommentService } from '../../domain/content/comments/comments.service';
 import { LikeService } from '../../domain/content/likes/likes.service';
+import { TagService } from '../../domain/content/tags/tags.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('posts')
@@ -23,7 +25,8 @@ export class PostsController {
 	constructor(
 		private readonly postsService: PostsService,
 		private readonly commentService: CommentService,
-		private readonly likeService: LikeService
+		private readonly likeService: LikeService,
+		private readonly tagService: TagService
 	) {}
 
 	@Get('/user/:userId')
@@ -78,5 +81,32 @@ export class PostsController {
 		@Request() req: SignedInRequest
 	) {
 		return await this.likeService.unlikePost(req.user.userId, postId);
+	}
+
+	@Post(':id/tags')
+	async addTagToPost(
+		@Param('id', ParseIntPipe) postId: number,
+		@Body('tagName') tagName: string
+	) {
+		return await this.tagService.addTagToPost(postId, tagName);
+	}
+
+	@Delete(':id/tags')
+	async removeTagFromPost(
+		@Param('id', ParseIntPipe) postId: number,
+		@Body('tagName') tagName: string
+	) {
+		return await this.tagService.removeTagFromPost(postId, tagName);
+	}
+
+	@Get()
+	async getPostsByTags(@Query('tags') tags: string) {
+		// If no tag is provided, the research should return all posts
+		if (!tags) return this.postsService.getAll();
+
+		const tagList = tags.split(',').filter(tag => tag.trim() !== '');
+		if (tagList.length === 0) return [];
+
+		return await this.tagService.getPostsByTags(tagList);
 	}
 }

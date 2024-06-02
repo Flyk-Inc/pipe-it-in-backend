@@ -31,6 +31,8 @@ import { LikeService } from './domain/content/likes/likes.service';
 import { Like } from './domain/content/likes/likes.entities';
 import { Reaction } from './domain/content/comments/reactions/reactions.entities';
 import { ReactionService } from './domain/content/comments/reactions/reactions.service';
+import { Tag } from './domain/content/tags/tags.entities';
+import { TagService } from './domain/content/tags/tags.service';
 
 @Module({
 	imports: [
@@ -40,6 +42,7 @@ import { ReactionService } from './domain/content/comments/reactions/reactions.s
 			UserFollows,
 			FollowRequest,
 			Posts,
+			Tag,
 			Comment,
 			Like,
 			Reaction,
@@ -71,6 +74,7 @@ import { ReactionService } from './domain/content/comments/reactions/reactions.s
 		JwtStrategy,
 		RelationshipService,
 		PostsService,
+		TagService,
 		CommentService,
 		LikeService,
 		ReactionService,
