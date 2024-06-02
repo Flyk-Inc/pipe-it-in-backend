@@ -18,7 +18,6 @@ import { CreatePostDto } from '../../domain/content/create-post.dto';
 import { CommentService } from '../../domain/content/comments/comments.service';
 import { LikeService } from '../../domain/content/likes/likes.service';
 import { TagService } from '../../domain/content/tags/tags.service';
-import { LikeService } from '../../domain/content/likes/likes.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('posts')
@@ -28,8 +27,6 @@ export class PostsController {
 		private readonly commentService: CommentService,
 		private readonly likeService: LikeService,
 		private readonly tagService: TagService
-		private readonly commentService: CommentService,
-		private readonly likeService: LikeService
 	) {}
 
 	@Get('/user/:userId')
@@ -68,22 +65,6 @@ export class PostsController {
 	@Get(':id/comments')
 	async getCommentsByPostId(@Param('id', ParseIntPipe) postId: number) {
 		return await this.commentService.getCommentsByPostId(postId);
-	}
-
-	@Post(':id/like')
-	async createLike(
-		@Param('id', ParseIntPipe) postId: number,
-		@Request() req: SignedInRequest
-	) {
-		return await this.likeService.likePost(req.user.userId, postId);
-	}
-
-	@Delete(':id/like')
-	async deleteLike(
-		@Param('id', ParseIntPipe) postId: number,
-		@Request() req: SignedInRequest
-	) {
-		return await this.likeService.unlikePost(req.user.userId, postId);
 	}
 
 	@Post(':id/like')

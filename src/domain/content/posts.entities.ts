@@ -13,7 +13,6 @@ import {
 import { User } from '../users/users.entities';
 import { Comment } from './comments/comments.entities';
 import { Like } from './likes/likes.entities';
-import { Like } from './likes/likes.entities';
 import { Tag } from './tags/tags.entities';
 
 @Entity('posts')
