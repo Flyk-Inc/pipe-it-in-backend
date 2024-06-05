@@ -4,3 +4,9 @@ services:
     env_file: .env
     ports:
       - 5432:5432
+    volumes:
+      - pipe-it-in-postgres-data:/var/lib/postgresql/data
+
+
+volumes:
+    pipe-it-in-postgres-data:

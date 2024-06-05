@@ -8,6 +8,9 @@ import { Posts } from './posts.entities';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreatePostDto } from './create-post.dto';
 import { User } from '../users/users.entities';
+import { GroupMember } from '../groups/groupMembers.entities';
+import { UserFollows } from '../users/user_follows.entities';
+import { postToTimelinePost } from './dto/PostFormatter';
 
 @Injectable()
 export class PostsService {
@@ -110,5 +113,71 @@ export class PostsService {
 		if (!deletion.affected) {
 			throw new Error('Post not found');
 		}
+	}
+
+	async getTimelinePosts(userId: number, cursor?: string, limit: number = 10) {
+		const query = this.postsRepository
+			.createQueryBuilder('posts')
+			.leftJoinAndSelect('posts.user', 'user')
+			.leftJoinAndSelect('posts.comments', 'comments')
+			.leftJoinAndSelect('posts.likes', 'likes')
+			.where(qb => {
+				const subQuery1 = qb
+					.subQuery()
+					.select('p.id')
+					.from(Posts, 'p')
+					.where('p.user_id = :userId', { userId })
+					.getQuery();
+
+				const subQuery2 = qb
+					.subQuery()
+					.select('p.id')
+					.from(Posts, 'p')
+					.innerJoin(
+						UserFollows,
+						'uf',
+						'uf.user_id = :userId AND uf.follower_id = p.user_id',
+						{ userId }
+					)
+					.getQuery();
+
+				const subQuery3 = qb
+					.subQuery()
+					.select('p.id')
+					.from(Posts, 'p')
+					.innerJoin(
+						GroupMember,
+						'gm',
+						'gm.userId = :userId AND gm.groupId = p.group_id',
+						{ userId }
+					)
+					.getQuery();
+
+				let whereClause = `posts.id IN (${subQuery1} UNION ${subQuery2} UNION ${subQuery3})`;
+				if (cursor) {
+					whereClause += ` AND posts.created_at < :cursor`;
+				}
+				return whereClause;
+			})
+			.orderBy('posts.created_at', 'DESC')
+			.limit(limit);
+
+		if (cursor) {
+			query.setParameter('cursor', new Date(cursor));
+		}
+
+		const [posts, total] = await query.getManyAndCount();
+
+		const timelinePosts = posts.map(post => postToTimelinePost(post));
+
+		const nextCursor =
+			posts.length > 0 ? posts[posts.length - 1].createdAt : null;
+
+		return {
+			data: timelinePosts,
+			total,
+			cursor: nextCursor,
+			limit,
+		};
 	}
 }
