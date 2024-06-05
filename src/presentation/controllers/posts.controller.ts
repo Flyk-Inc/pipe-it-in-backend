@@ -7,6 +7,7 @@ import {
 	ParseIntPipe,
 	Patch,
 	Post,
+	Query,
 	Request,
 	UseGuards,
 } from '@nestjs/common';
@@ -78,5 +79,18 @@ export class PostsController {
 		@Request() req: SignedInRequest
 	) {
 		return await this.likeService.unlikePost(req.user.userId, postId);
+	}
+
+	@Get('/timeline')
+	async getTimelinePosts(
+		@Request() req: SignedInRequest,
+		@Query('cursor') cursor: string,
+		@Query('limit') limit: number
+	) {
+		return await this.postsService.getTimelinePosts(
+			req.user.userId,
+			cursor,
+			limit
+		);
 	}
 }

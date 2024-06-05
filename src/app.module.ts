@@ -43,9 +43,9 @@ import { ReactionService } from './domain/content/comments/reactions/reactions.s
 			Comment,
 			Like,
 			Reaction,
+			Group,
+			GroupMember,
 		]),
-		TypeOrmModule.forFeature([Group]),
-		TypeOrmModule.forFeature([GroupMember]),
 		TypeOrmModule.forRoot(dbdatasource),
 		JwtModule.register({
 			secret: jwtConstants.secret,
