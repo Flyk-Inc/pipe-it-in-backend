@@ -21,6 +21,15 @@ export class PostsService {
 		private readonly userRepository: Repository<User>
 	) {}
 
+	/**
+	 * Get all posts
+	 */
+	async getAll() {
+		return await this.postsRepository.find({
+			order: { createdAt: 'DESC' },
+		});
+	}
+
 	async createPost(post: CreatePostDto, creatorId: number): Promise<Posts> {
 		return await this.postsRepository.save({
 			...post,

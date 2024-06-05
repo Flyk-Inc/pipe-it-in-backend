@@ -17,6 +17,7 @@ import { SignedInRequest } from '../../infrastructure/auth/strategies/jwt.strate
 import { CreatePostDto } from '../../domain/content/create-post.dto';
 import { CommentService } from '../../domain/content/comments/comments.service';
 import { LikeService } from '../../domain/content/likes/likes.service';
+import { TagService } from '../../domain/content/tags/tags.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('posts')
@@ -24,7 +25,8 @@ export class PostsController {
 	constructor(
 		private readonly postsService: PostsService,
 		private readonly commentService: CommentService,
-		private readonly likeService: LikeService
+		private readonly likeService: LikeService,
+		private readonly tagService: TagService
 	) {}
 
 	@Get('/user/:userId')
@@ -92,5 +94,36 @@ export class PostsController {
 			cursor,
 			limit
 		);
+	}
+
+	@Post(':id/tags')
+	async addTagToPost(
+		@Param('id', ParseIntPipe) postId: number,
+		@Body('tagName') tagName: string
+	) {
+		return await this.tagService.addTagToPost(postId, tagName);
+	}
+
+	@Delete(':id/tags')
+	async removeTagFromPost(
+		@Param('id', ParseIntPipe) postId: number,
+		@Body('tagName') tagName: string
+	) {
+		return await this.tagService.removeTagFromPost(postId, tagName);
+	}
+
+	@Get()
+	async getPostsByTags(@Query('tagList') tagList: string[]) {
+		// Ensure tagList is always an array
+		if (!Array.isArray(tagList)) {
+			tagList = [tagList];
+		}
+
+		// If no tag is provided, the research should return all posts
+		if (!tagList || tagList.length === 0) {
+			return this.postsService.getAll();
+		}
+
+		return await this.tagService.getPostsByTags(tagList);
 	}
 }
