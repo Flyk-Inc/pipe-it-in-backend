@@ -46,9 +46,9 @@ import { TagService } from './domain/content/tags/tags.service';
 			Comment,
 			Like,
 			Reaction,
+			Group,
+			GroupMember,
 		]),
-		TypeOrmModule.forFeature([Group]),
-		TypeOrmModule.forFeature([GroupMember]),
 		TypeOrmModule.forRoot(dbdatasource),
 		JwtModule.register({
 			secret: jwtConstants.secret,
