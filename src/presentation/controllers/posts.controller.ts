@@ -113,12 +113,16 @@ export class PostsController {
 	}
 
 	@Get()
-	async getPostsByTags(@Query('tags') tags: string) {
-		// If no tag is provided, the research should return all posts
-		if (!tags) return this.postsService.getAll();
+	async getPostsByTags(@Query('tagList') tagList: string[]) {
+		// Ensure tagList is always an array
+		if (!Array.isArray(tagList)) {
+			tagList = [tagList];
+		}
 
-		const tagList = tags.split(',').filter(tag => tag.trim() !== '');
-		if (tagList.length === 0) return [];
+		// If no tag is provided, the research should return all posts
+		if (!tagList || tagList.length === 0) {
+			return this.postsService.getAll();
+		}
 
 		return await this.tagService.getPostsByTags(tagList);
 	}
