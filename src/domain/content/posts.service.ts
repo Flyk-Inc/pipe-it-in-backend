@@ -164,10 +164,8 @@ export class PostsService {
 
 		if (cursor) {
 			query.setParameter('cursor', new Date(cursor));
-			console.log(cursor);
 		}
 
-		console.log(query.getQuery());
 		const [posts, total] = await query.getManyAndCount();
 
 		const timelinePosts = posts.map(post => postToTimelinePost(post));
