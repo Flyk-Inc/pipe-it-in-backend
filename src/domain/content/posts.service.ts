@@ -11,6 +11,7 @@ import { User } from '../users/users.entities';
 import { GroupMember } from '../groups/groupMembers.entities';
 import { UserFollows } from '../users/user_follows.entities';
 import { postToTimelinePost } from './dto/PostFormatter';
+import { TimelinePost } from './dto/TimelinePost';
 
 @Injectable()
 export class PostsService {
@@ -21,11 +22,20 @@ export class PostsService {
 		private readonly userRepository: Repository<User>
 	) {}
 
-	async createPost(post: CreatePostDto, creatorId: number): Promise<Posts> {
-		return await this.postsRepository.save({
+	async createPost(
+		post: CreatePostDto,
+		creatorId: number
+	): Promise<TimelinePost> {
+		const { id } = await this.postsRepository.save({
 			...post,
 			user: { id: creatorId },
 		});
+		const createdPost = await this.postsRepository.findOne({
+			where: { id },
+			relations: ['user', 'comments', 'likes'],
+		});
+
+		return postToTimelinePost(createdPost);
 	}
 
 	/**
