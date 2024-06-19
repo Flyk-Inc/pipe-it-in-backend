@@ -12,6 +12,7 @@ export class Migration1715135207410 implements MigrationInterface {
            "password"        character varying NOT NULL,
            "firstName"       character varying NOT NULL,
            "lastName"        character varying NOT NULL,
+           "username"        character varying NOT NULL,
            "isActive"        boolean           NOT NULL DEFAULT true,
            "updatedAt"       TIMESTAMP         NOT NULL DEFAULT now(),
            "createdAt"       TIMESTAMP         NOT NULL DEFAULT now(),

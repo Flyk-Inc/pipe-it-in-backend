@@ -14,4 +14,8 @@ export class CreateUserDTO {
 
 	@IsNotEmpty()
 	lastName: string;
+
+	@MinLength(3)
+	@IsNotEmpty()
+	username: string;
 }

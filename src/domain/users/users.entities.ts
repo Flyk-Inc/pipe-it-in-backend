@@ -32,6 +32,9 @@ export class User {
 	@Column()
 	lastName: string;
 
+	@Column()
+	username: string;
+
 	@Column({ type: 'boolean', default: true })
 	isActive: boolean;
 
@@ -51,6 +54,9 @@ export class User {
 	@Column({ default: false })
 	isPrivate: boolean;
 
+	@Column({ nullable: true })
+	description: string;
+
 	@OneToMany(() => UserFollows, userFollow => userFollow.follower)
 	following: UserFollows[];
 
@@ -68,6 +74,9 @@ export class User {
 
 	@OneToMany(() => Like, like => like.user)
 	likes: Like[];
+
+	@Column({ nullable: true })
+	pinnedPost: number;
 
 	@Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
 	updatedAt: Date;
