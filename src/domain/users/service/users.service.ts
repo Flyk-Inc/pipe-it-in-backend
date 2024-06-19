@@ -1,6 +1,5 @@
 import {
 	BadRequestException,
-	ConflictException,
 	Injectable,
 	NotFoundException,
 } from '@nestjs/common';
@@ -62,12 +61,6 @@ export class UsersService {
 		const user = await this.usersRepository.findOne({ where: { id: userId } });
 		if (!user) {
 			throw new NotFoundException('User not found');
-		}
-
-		if (user.isPrivate === toggleUserPrivacyDto.isPrivate) {
-			throw new ConflictException(
-				'Profile is already in the desired privacy state'
-			);
 		}
 
 		user.isPrivate = toggleUserPrivacyDto.isPrivate;

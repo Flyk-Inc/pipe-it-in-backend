@@ -3,7 +3,6 @@ import {
 	Controller,
 	Get,
 	Patch,
-	Post,
 	Request,
 	UseGuards,
 } from '@nestjs/common';
@@ -54,7 +53,7 @@ export class UsersController {
 	}
 
 	@UseGuards(JwtAuthGuard)
-	@Post('pin-post')
+	@Patch('pin-post')
 	pinPost(@Request() req: SignedInRequest, @Body() pinPostDto: PinPostDto) {
 		return this.usersService.pinPost(req.user.userId, pinPostDto);
 	}
