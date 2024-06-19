@@ -3,6 +3,8 @@ import {
 	CreateDateColumn,
 	Entity,
 	JoinColumn,
+	JoinTable,
+	ManyToMany,
 	ManyToOne,
 	OneToMany,
 	PrimaryGeneratedColumn,
@@ -11,6 +13,7 @@ import {
 import { User } from '../users/users.entities';
 import { Comment } from './comments/comments.entities';
 import { Like } from './likes/likes.entities';
+import { Tag } from './tags/tags.entities';
 
 @Entity('posts')
 export class Posts {
@@ -32,9 +35,14 @@ export class Posts {
 
 	@OneToMany(() => Like, like => like.post)
 	likes: Like[];
-	//
-	// @OneToMany(() => Tag, tag => tag.post)
-	// tags: Tag[];
+
+	@ManyToMany(() => Tag, tag => tag.posts)
+	@JoinTable({
+		name: 'post_tags',
+		joinColumn: { name: 'post_id', referencedColumnName: 'id' },
+		inverseJoinColumn: { name: 'tag_id', referencedColumnName: 'id' },
+	})
+	tags: Tag[];
 
 	@CreateDateColumn({ name: 'created_at' })
 	createdAt: Date;
