@@ -121,4 +121,17 @@ export class GroupController {
 		const userId = req.user.userId;
 		return await this.groupService.getUserGroups(userId);
 	}
+
+	@UseGuards(JwtAuthGuard)
+	@Get('popular')
+	@ApiOperation({ summary: 'Get popular public groups' })
+	@ApiResponse({
+		status: 200,
+		description: 'Successfully retrieved popular groups.',
+	})
+	@ApiResponse({ status: 500, description: 'Internal server error' })
+	async getPopularGroups(@Request() req: SignedInRequest) {
+		const userId = req.user.userId;
+		return await this.groupService.getPopularGroups(userId);
+	}
 }
