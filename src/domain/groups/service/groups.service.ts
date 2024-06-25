@@ -140,4 +140,32 @@ export class GroupService {
 
 		return groupMembers.map(member => member.group);
 	}
+
+	async getPopularGroups(userId: number): Promise<Group[]> {
+		// Subquery to find groups the user is a member of
+		const subQuery = this.groupMemberRepository
+			.createQueryBuilder('groupMember')
+			.select('groupMember.groupId')
+			.where('groupMember.userId = :userId', { userId });
+
+		// Main query to find popular public groups, excluding groups the user is a member of
+		const queryBuilder = this.groupRepository
+			.createQueryBuilder('group')
+			.leftJoin('group.members', 'members')
+			.where('group.isPrivate = :isPrivate', { isPrivate: false })
+			.andWhere(`group.id NOT IN (${subQuery.getQuery()})`)
+			.groupBy('group.id')
+			.orderBy('COUNT(members.id)', 'DESC')
+			.limit(10)
+			.addSelect('COUNT(members.id)', 'memberCount')
+			.setParameter('userId', userId);
+
+		const rawAndEntities = await queryBuilder.getRawAndEntities();
+		const { raw, entities } = rawAndEntities;
+
+		return entities.map((entity, index) => ({
+			...entity,
+			memberCount: parseInt(raw[index].memberCount, 10),
+		}));
+	}
 }
