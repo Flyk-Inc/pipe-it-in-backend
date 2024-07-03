@@ -89,18 +89,49 @@ export class PostsService {
 	 * Get all posts by a user
 	 * @param userId
 	 * @param connectedUserId the user id of the user making the request
+	 * @param cursor
+	 * @param limit
 	 */
-	async getPostsByUser(userId: number, connectedUserId: number) {
-		return await this.postsRepository.find({
-			where: {
-				user: {
-					id: userId,
-					isPrivate: userId === connectedUserId ? undefined : false,
-				},
-				groupId: null,
-			},
-			order: { createdAt: 'DESC' },
-		});
+	async getPostsByUser(
+		userId: number,
+		connectedUserId: number,
+		cursor?: string,
+		limit: number = 20
+	): Promise<{
+		data: TimelinePost[];
+		total: number;
+		cursor?: string | null;
+		limit: number;
+	}> {
+		const query = this.postsRepository
+			.createQueryBuilder('posts')
+			.leftJoinAndSelect('posts.user', 'user')
+			.leftJoinAndSelect('posts.comments', 'comments')
+			.leftJoinAndSelect('posts.likes', 'likes')
+			.where('posts.user_id = :userId', { userId })
+			.andWhere('posts.group_id IS NULL')
+			.orderBy('posts.created_at', 'DESC')
+			.limit(limit);
+
+		if (cursor) {
+			query.andWhere('posts.created_at < :cursor', {
+				cursor: new Date(cursor),
+			});
+		}
+
+		const [posts, total] = await query.getManyAndCount();
+
+		const timelinePosts = posts.map(post => postToTimelinePost(post));
+
+		const nextCursor =
+			posts.length > 0 ? posts[posts.length - 1].createdAt.toISOString() : null;
+
+		return {
+			data: timelinePosts,
+			total,
+			cursor: nextCursor,
+			limit,
+		};
 	}
 
 	/**

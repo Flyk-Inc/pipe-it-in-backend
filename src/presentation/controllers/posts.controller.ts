@@ -30,10 +30,17 @@ export class PostsController {
 	) {}
 
 	@Get('/user/:userId')
-	async getPostsToDisplayByUser(@Request() req: SignedInRequest) {
+	async getPostsToDisplayByUser(
+		@Param('userId', ParseIntPipe) userId: number,
+		@Request() req: SignedInRequest,
+		@Query('cursor') cursor: string,
+		@Query('limit') limit: number
+	) {
 		return await this.postsService.getPostsByUser(
-			parseInt(req.params.userId),
-			req.user.userId
+			userId,
+			req.user.userId,
+			cursor,
+			limit
 		);
 	}
 
