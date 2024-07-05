@@ -132,13 +132,25 @@ export class GroupService {
 	}
 
 	async getUserGroups(userId: number): Promise<Group[]> {
-		const groupMembers = await this.groupMemberRepository.find({
-			where: { userId: userId },
-			relations: ['group'],
-			loadEagerRelations: false,
-		});
+		const queryBuilder = this.groupRepository
+			.createQueryBuilder('group')
+			.leftJoin('group.members', 'members')
+			.innerJoin(
+				'group.members',
+				'userGroupMembers',
+				'userGroupMembers.userId = :userId',
+				{ userId }
+			)
+			.groupBy('group.id')
+			.addSelect('COUNT(members.id)', 'memberCount');
 
-		return groupMembers.map(member => member.group);
+		const rawAndEntities = await queryBuilder.getRawAndEntities();
+		const { raw, entities } = rawAndEntities;
+
+		return entities.map((entity, index) => ({
+			...entity,
+			memberCount: parseInt(raw[index].memberCount, 10),
+		}));
 	}
 
 	async getPopularGroups(userId: number): Promise<Group[]> {
