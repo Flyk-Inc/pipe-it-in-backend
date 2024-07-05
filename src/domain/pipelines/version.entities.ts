@@ -40,13 +40,13 @@ export class Version {
 		() => InputDescription,
 		inputDescription => inputDescription.version
 	)
-	inputDescriptions: InputDescription[];
+	input: InputDescription[];
 
 	@OneToMany(
 		() => OutputDescription,
 		outputDescription => outputDescription.version
 	)
-	outputDescriptions: OutputDescription[];
+	output: OutputDescription[];
 
 	@CreateDateColumn({ type: 'timestamp' })
 	createdAt: Date;

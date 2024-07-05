@@ -39,6 +39,7 @@ import { Code } from './domain/pipelines/code.entities';
 import { FileTypes } from './domain/pipelines/file_type.entities';
 import { InputDescription } from './domain/pipelines/input_description.entities';
 import { OutputDescription } from './domain/pipelines/output_description.entities';
+import { Version } from './domain/pipelines/version.entities';
 
 @Module({
 	imports: [
@@ -55,6 +56,7 @@ import { OutputDescription } from './domain/pipelines/output_description.entitie
 			Group,
 			GroupMember,
 			Code,
+			Version,
 			FileTypes,
 			InputDescription,
 			OutputDescription,

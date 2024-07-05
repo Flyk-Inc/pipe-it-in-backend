@@ -15,6 +15,9 @@ import { UpdateCodeDTO } from '../domain/pipelines/dto/updateCode.dto';
 import { CodeService } from './code.service';
 import { SignedInRequest } from '../infrastructure/auth/strategies/jwt.strategy';
 import { JwtAuthGuard } from '../infrastructure/auth/guards/jwt-auth.guard';
+import { Version } from '../domain/pipelines/version.entities';
+import { CreateVersionDTO } from '../domain/pipelines/dto/create-version.dto';
+import { UpdateVersionDTO } from '../domain/pipelines/dto/update-version.dto';
 
 @Controller('code')
 export class CodeController {
@@ -47,5 +50,23 @@ export class CodeController {
 		@Req() req: SignedInRequest
 	): Promise<Code[]> {
 		return this.codeService.getCodesByUser(req.user.userId);
+	}
+
+	@Post(':codeId/version')
+	@UseGuards(JwtAuthGuard)
+	async createVersion(
+		@Param('codeId', ParseIntPipe) codeId: number,
+		@Body() createVersionDto: CreateVersionDTO
+	): Promise<Version> {
+		return this.codeService.createVersion(codeId, createVersionDto);
+	}
+
+	@Patch('version/:versionId')
+	@UseGuards(JwtAuthGuard)
+	async updateVersion(
+		@Param('versionId', ParseIntPipe) versionId: number,
+		@Body() updateVersionDto: UpdateVersionDTO
+	): Promise<Version> {
+		return this.codeService.updateVersion(versionId, updateVersionDto);
 	}
 }
