@@ -1,4 +1,5 @@
 import {
+	Column,
 	CreateDateColumn,
 	Entity,
 	ManyToOne,
@@ -7,21 +8,35 @@ import {
 } from 'typeorm';
 import { Version } from './version.entities';
 import { FileTypes } from './file_type.entities';
+import { Code } from './code.entities';
 
 @Entity({ name: 'Output_Descriptions' })
-export class Output_Description {
+export class OutputDescription {
 	@PrimaryGeneratedColumn('increment')
 	id: number;
 
-	@ManyToOne(() => FileTypes)
+	@ManyToOne(() => FileTypes, { eager: true })
 	fileType: FileTypes;
 
-	@ManyToOne(() => Version)
+	@Column()
+	description: string;
+
+	@ManyToOne(() => Version, { eager: false })
 	version: Version;
+
+	@ManyToOne(() => Code, { eager: false })
+	code: Code;
 
 	@CreateDateColumn({ type: 'timestamp' })
 	createdAt: Date;
 
 	@UpdateDateColumn({ type: 'timestamp' })
 	updatedAt: Date;
+
+	toJSON() {
+		return {
+			fileType: this.fileType.extension,
+			description: this.description,
+		};
+	}
 }
