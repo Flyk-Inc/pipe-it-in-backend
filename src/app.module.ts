@@ -33,6 +33,8 @@ import { Reaction } from './domain/content/comments/reactions/reactions.entities
 import { ReactionService } from './domain/content/comments/reactions/reactions.service';
 import { Tag } from './domain/content/tags/tags.entities';
 import { TagService } from './domain/content/tags/tags.service';
+import { RabbitMQService } from './infrastructure/messaging/rabbitmq.service';
+import { MessagesController } from './infrastructure/messaging/messages.controller';
 
 @Module({
 	imports: [
@@ -63,6 +65,7 @@ import { TagService } from './domain/content/tags/tags.service';
 		UserFollowController,
 		PostsController,
 		CommentController,
+		MessagesController,
 	],
 	providers: [
 		AppService,
@@ -78,6 +81,7 @@ import { TagService } from './domain/content/tags/tags.service';
 		CommentService,
 		LikeService,
 		ReactionService,
+		RabbitMQService,
 	],
 })
 export class AppModule {}
