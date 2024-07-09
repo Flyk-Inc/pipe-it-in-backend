@@ -54,6 +54,27 @@ export class UsersService {
 		return this.usersRepository.save(updatedUser);
 	}
 
+	async updateUserProfilePicture(
+		userId: number,
+		storagePath: string
+	): Promise<User> {
+		const user = await this.usersRepository.findOne({ where: { id: userId } });
+		if (!user) {
+			throw new NotFoundException('User not found');
+		}
+
+		user.profilePicture = storagePath;
+		return this.usersRepository.save(user);
+	}
+
+	async getUserProfilePicture(userId: number): Promise<string> {
+		const user = await this.usersRepository.findOne({ where: { id: userId } });
+		if (!user) {
+			throw new NotFoundException('Profile picture not found');
+		}
+		return user.profilePicture;
+	}
+
 	async toggleUserPrivacy(
 		userId: number,
 		toggleUserPrivacyDto: ToggleUserPrivacyDto

@@ -42,6 +42,9 @@ import { OutputDescription } from './domain/pipelines/output_description.entitie
 import { Version } from './domain/pipelines/version.entities';
 import { RabbitMQService } from './infrastructure/messaging/rabbitmq.service';
 import { MessagesController } from './infrastructure/messaging/messages.controller';
+import { ObjectStorageModule } from './infrastructure/object-storage/object-storage.module';
+import { FileService } from './domain/pipelines/code-runner/file.service';
+import { FileEntity } from './domain/pipelines/code-runner/file.entities';
 
 @Module({
 	imports: [
@@ -62,12 +65,14 @@ import { MessagesController } from './infrastructure/messaging/messages.controll
 			FileTypes,
 			InputDescription,
 			OutputDescription,
+			FileEntity,
 		]),
 		TypeOrmModule.forRoot(dbdatasource),
 		JwtModule.register({
 			secret: jwtConstants.secret,
 			signOptions: { expiresIn: jwtConstants.expiresIn },
 		}),
+		ObjectStorageModule,
 	],
 	controllers: [
 		AppController,
@@ -96,6 +101,7 @@ import { MessagesController } from './infrastructure/messaging/messages.controll
 		ReactionService,
 		CodeService,
 		RabbitMQService,
+		FileService,
 	],
 })
 export class AppModule {}
