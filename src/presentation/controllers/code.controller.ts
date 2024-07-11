@@ -9,17 +9,17 @@ import {
 	Req,
 	UseGuards,
 } from '@nestjs/common';
-import { CreateCodeDTO } from '../domain/pipelines/dto/createCodeDTO';
-import { Code } from '../domain/pipelines/code.entities';
-import { UpdateCodeDTO } from '../domain/pipelines/dto/updateCode.dto';
-import { CodeService } from './code.service';
-import { SignedInRequest } from '../infrastructure/auth/strategies/jwt.strategy';
-import { JwtAuthGuard } from '../infrastructure/auth/guards/jwt-auth.guard';
-import { Version } from '../domain/pipelines/version.entities';
-import { CreateVersionDTO } from '../domain/pipelines/dto/create-version.dto';
-import { UpdateVersionDTO } from '../domain/pipelines/dto/update-version.dto';
+import { CreateCodeDTO } from '../../domain/pipelines/dto/createCodeDTO';
+import { Code } from '../../domain/pipelines/code.entities';
+import { UpdateCodeDTO } from '../../domain/pipelines/dto/updateCode.dto';
+import { CodeService } from '../../domain/pipelines/service/code.service';
+import { SignedInRequest } from '../../infrastructure/auth/strategies/jwt.strategy';
+import { JwtAuthGuard } from '../../infrastructure/auth/guards/jwt-auth.guard';
+import { Version } from '../../domain/pipelines/version.entities';
+import { CreateVersionDTO } from '../../domain/pipelines/dto/create-version.dto';
+import { UpdateVersionDTO } from '../../domain/pipelines/dto/update-version.dto';
 
-@Controller('code')
+@Controller('codes')
 export class CodeController {
 	constructor(private readonly codeService: CodeService) {}
 
@@ -68,5 +68,22 @@ export class CodeController {
 		@Body() updateVersionDto: UpdateVersionDTO
 	): Promise<Version> {
 		return this.codeService.updateVersion(versionId, updateVersionDto);
+	}
+
+	@Get(':codeId/versions')
+	@UseGuards(JwtAuthGuard)
+	async getVersionsByCode(
+		@Param('codeId', ParseIntPipe) codeId: number
+	): Promise<Version[]> {
+		return this.codeService.getVersionsByCode(codeId);
+	}
+
+	@Get(':codeId')
+	@UseGuards(JwtAuthGuard)
+	async getCodeDetailById(
+		@Param('codeId', ParseIntPipe) codeId: number,
+		@Req() req: SignedInRequest
+	): Promise<Code> {
+		return this.codeService.getCodeDetailById(codeId, req.user.userId);
 	}
 }

@@ -30,7 +30,7 @@ export class Version {
 	@Column()
 	status: string;
 
-	@ManyToOne(() => Code, code => code.versions)
+	@ManyToOne(() => Code, code => code.versions, { eager: false })
 	code: Code;
 
 	@Column({ type: 'text' })
@@ -38,13 +38,15 @@ export class Version {
 
 	@OneToMany(
 		() => InputDescription,
-		inputDescription => inputDescription.version
+		inputDescription => inputDescription.version,
+		{ eager: true }
 	)
 	input: InputDescription[];
 
 	@OneToMany(
 		() => OutputDescription,
-		outputDescription => outputDescription.version
+		outputDescription => outputDescription.version,
+		{ eager: true }
 	)
 	output: OutputDescription[];
 
@@ -65,4 +67,19 @@ export class Version {
 		{ eager: false }
 	)
 	pipelineRunSteps: PipelineRunStep[];
+
+	toJSON() {
+		return {
+			id: this.id,
+			title: this.title,
+			version: this.version,
+			description: this.description,
+			status: this.status,
+			codeContent: this.codeContent,
+			input: this.input,
+			output: this.output,
+			createdAt: this.createdAt,
+			updatedAt: this.updatedAt,
+		};
+	}
 }

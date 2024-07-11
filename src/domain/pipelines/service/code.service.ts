@@ -4,17 +4,17 @@ import {
 	NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Code } from '../domain/pipelines/code.entities';
-import { Version } from '../domain/pipelines/version.entities';
+import { Code } from '../code.entities';
+import { Version } from '../version.entities';
 import { Repository } from 'typeorm';
-import { User } from '../domain/users/users.entities';
-import { CreateCodeDTO } from '../domain/pipelines/dto/createCodeDTO';
-import { UpdateCodeDTO } from '../domain/pipelines/dto/updateCode.dto';
-import { InputDescription } from '../domain/pipelines/input_description.entities';
-import { OutputDescription } from '../domain/pipelines/output_description.entities';
-import { FileTypes } from '../domain/pipelines/file_type.entities';
-import { CreateVersionDTO } from '../domain/pipelines/dto/create-version.dto';
-import { UpdateVersionDTO } from '../domain/pipelines/dto/update-version.dto';
+import { User } from '../../users/users.entities';
+import { CreateCodeDTO } from '../dto/createCodeDTO';
+import { UpdateCodeDTO } from '../dto/updateCode.dto';
+import { InputDescription } from '../input_description.entities';
+import { OutputDescription } from '../output_description.entities';
+import { FileTypes } from '../file_type.entities';
+import { CreateVersionDTO } from '../dto/create-version.dto';
+import { UpdateVersionDTO } from '../dto/update-version.dto';
 
 @Injectable()
 export class CodeService {
@@ -177,7 +177,10 @@ export class CodeService {
 	async getCodesByUser(userId: number): Promise<Code[]> {
 		return this.codeRepository.find({
 			where: { author: { id: userId } },
-			relations: ['author', 'input', 'output', 'versions'],
+			relations: {
+				author: true,
+				versions: { input: { fileType: true }, output: { fileType: true } },
+			},
 		});
 	}
 
@@ -218,6 +221,25 @@ export class CodeService {
 				})
 			);
 			await this.inputDescriptionRepository.save(input);
+			const inputForCodeDraft = await Promise.all(
+				createVersionDto.input.map(async input => {
+					const fileType = await this.fileTypesRepository.findOne({
+						where: { extension: input.fileType },
+					});
+					if (!fileType) {
+						throw new NotFoundException(
+							`File type with extension ${input.fileType} not found`
+						);
+					}
+					await this.inputDescriptionRepository.delete({ code });
+					return this.inputDescriptionRepository.create({
+						...input,
+						fileType,
+						code,
+					});
+				})
+			);
+			await this.inputDescriptionRepository.save(inputForCodeDraft);
 		}
 
 		if (createVersionDto.output) {
@@ -239,7 +261,33 @@ export class CodeService {
 				})
 			);
 			await this.outputDescriptionRepository.save(output);
+			const outputForCodeDraft = await Promise.all(
+				createVersionDto.output.map(async output => {
+					const fileType = await this.fileTypesRepository.findOne({
+						where: { extension: output.fileType },
+					});
+					if (!fileType) {
+						throw new NotFoundException(
+							`File type with extension ${output.fileType} not found`
+						);
+					}
+					await this.outputDescriptionRepository.delete({ code });
+					return this.outputDescriptionRepository.create({
+						...output,
+						fileType,
+						code,
+					});
+				})
+			);
+			await this.outputDescriptionRepository.save(outputForCodeDraft);
 		}
+
+		await this.codeRepository.update(code.id, {
+			draft: version.codeContent,
+			versionDescriptionDraft: version.description,
+			versionTitleDraft: version.title,
+			versionVersionDraft: version.version,
+		});
 
 		return this.versionRepository.findOne({
 			where: { id: savedVersion.id },
@@ -313,5 +361,35 @@ export class CodeService {
 			where: { id: updatedVersion.id },
 			relations: ['input', 'output'],
 		});
+	}
+
+	getVersionsByCode(codeId: number) {
+		return this.versionRepository.find({
+			where: { code: { id: codeId } },
+			relations: { input: { fileType: true }, output: { fileType: true } },
+		});
+	}
+
+	async getCodeDetailById(codeId: number, userId: number) {
+		const code = await this.codeRepository.findOne({
+			where: { id: codeId, author: { id: userId } },
+			relations: {
+				author: true,
+				input: { fileType: true },
+				output: { fileType: true },
+				versions: { input: { fileType: true }, output: { fileType: true } },
+			},
+		});
+
+		if (!code) {
+			throw new NotFoundException('Code not found');
+		}
+		if (code.status === 'hidden' && code.author.id !== userId) {
+			throw new ForbiddenException(
+				'You are not authorized to access this code'
+			);
+		}
+
+		return code;
 	}
 }

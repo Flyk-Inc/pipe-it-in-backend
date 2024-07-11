@@ -32,6 +32,16 @@ export class Code {
 	@Column()
 	language: CodeLanguages;
 
+	@Column({ default: '' })
+	versionTitleDraft: string;
+
+	@Column({ default: '' })
+	versionDescriptionDraft: string;
+
+	@Column({ default: '' })
+	versionVersionDraft: string;
+
+	@Column()
 	@Column({ default: 'active' })
 	status: CodeStatus;
 
@@ -64,10 +74,21 @@ export class Code {
 				username: this.author.username,
 				id: this.author.id,
 			},
+			versionDraft: {
+				title: this.versionTitleDraft,
+				version: this.versionVersionDraft,
+				description: this.versionDescriptionDraft,
+			},
 			language: this.language,
 			draft: this.draft,
 			input: this.input,
 			output: this.output,
+			versions: this.versions
+				? this.versions.sort(
+						(a, b) =>
+							new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+					)
+				: [],
 			status: this.status,
 			createAt: this.createdAt,
 			updateAt: this.updatedAt,
