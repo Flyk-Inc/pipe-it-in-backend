@@ -33,8 +33,8 @@ import { Reaction } from './domain/content/comments/reactions/reactions.entities
 import { ReactionService } from './domain/content/comments/reactions/reactions.service';
 import { Tag } from './domain/content/tags/tags.entities';
 import { TagService } from './domain/content/tags/tags.service';
-import { CodeController } from './code/code.controller';
-import { CodeService } from './code/code.service';
+import { CodeController } from './presentation/controllers/code.controller';
+import { CodeService } from './domain/pipelines/service/code.service';
 import { Code } from './domain/pipelines/code.entities';
 import { FileTypes } from './domain/pipelines/file_type.entities';
 import { InputDescription } from './domain/pipelines/input_description.entities';

@@ -3,7 +3,7 @@ import { IsNotEmpty, IsString } from 'class-validator';
 export class InputDescriptionDTO {
 	@IsNotEmpty()
 	@IsString()
-	fileType: string; // This can be the extension or an identifier
+	fileType: string;
 
 	@IsNotEmpty()
 	@IsString()
@@ -13,7 +13,7 @@ export class InputDescriptionDTO {
 export class OutputDescriptionDTO {
 	@IsNotEmpty()
 	@IsString()
-	fileType: string; // This can be the extension or an identifier
+	fileType: string;
 
 	@IsNotEmpty()
 	@IsString()
