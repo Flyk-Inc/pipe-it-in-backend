@@ -14,6 +14,7 @@ import { Posts } from '../content/posts.entities';
 import { Comment } from '../content/comments/comments.entities';
 import { Like } from '../content/likes/likes.entities';
 import { Reaction } from '../content/comments/reactions/reactions.entities';
+import { Code } from '../pipelines/code.entities';
 
 @Entity({ name: 'Users' })
 export class User {
@@ -77,6 +78,9 @@ export class User {
 
 	@Column({ nullable: true })
 	pinnedPost: number;
+
+	@OneToMany(() => Code, code => code.author)
+	codes: Code[];
 
 	@Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
 	updatedAt: Date;
