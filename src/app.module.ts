@@ -40,6 +40,8 @@ import { FileTypes } from './domain/pipelines/file_type.entities';
 import { InputDescription } from './domain/pipelines/input_description.entities';
 import { OutputDescription } from './domain/pipelines/output_description.entities';
 import { Version } from './domain/pipelines/version.entities';
+import { RabbitMQService } from './infrastructure/messaging/rabbitmq.service';
+import { MessagesController } from './infrastructure/messaging/messages.controller';
 
 @Module({
 	imports: [
@@ -76,6 +78,7 @@ import { Version } from './domain/pipelines/version.entities';
 		PostsController,
 		CommentController,
 		CodeController,
+		MessagesController,
 	],
 	providers: [
 		AppService,
@@ -92,6 +95,7 @@ import { Version } from './domain/pipelines/version.entities';
 		LikeService,
 		ReactionService,
 		CodeService,
+		RabbitMQService,
 	],
 })
 export class AppModule {}
