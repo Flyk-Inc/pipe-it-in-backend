@@ -45,6 +45,7 @@ import { MessagesController } from './infrastructure/messaging/messages.controll
 import { ObjectStorageModule } from './infrastructure/object-storage/object-storage.module';
 import { FileService } from './domain/pipelines/code-runner/file.service';
 import { FileEntity } from './domain/pipelines/code-runner/file.entities';
+import { FileController } from './presentation/controllers/files.controller';
 
 @Module({
 	imports: [
@@ -84,6 +85,7 @@ import { FileEntity } from './domain/pipelines/code-runner/file.entities';
 		CommentController,
 		CodeController,
 		MessagesController,
+		FileController,
 	],
 	providers: [
 		AppService,
