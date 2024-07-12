@@ -1,8 +1,10 @@
 import {
 	Column,
 	Entity,
+	JoinColumn,
 	JoinTable,
 	ManyToMany,
+	ManyToOne,
 	OneToMany,
 	PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -15,6 +17,7 @@ import { Comment } from '../content/comments/comments.entities';
 import { Like } from '../content/likes/likes.entities';
 import { Reaction } from '../content/comments/reactions/reactions.entities';
 import { Code } from '../pipelines/code.entities';
+import { FileEntity } from '../pipelines/code-runner/file.entities';
 
 @Entity({ name: 'Users' })
 export class User {
@@ -35,6 +38,10 @@ export class User {
 
 	@Column()
 	username: string;
+
+	@ManyToOne(() => FileEntity)
+	@JoinColumn({ name: 'profile_picture' })
+	profilePicture: FileEntity;
 
 	@Column({ type: 'boolean', default: true })
 	isActive: boolean;

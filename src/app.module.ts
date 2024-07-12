@@ -33,15 +33,19 @@ import { Reaction } from './domain/content/comments/reactions/reactions.entities
 import { ReactionService } from './domain/content/comments/reactions/reactions.service';
 import { Tag } from './domain/content/tags/tags.entities';
 import { TagService } from './domain/content/tags/tags.service';
-import { CodeController } from './presentation/controllers/code.controller';
-import { CodeService } from './domain/pipelines/service/code.service';
 import { Code } from './domain/pipelines/code.entities';
 import { FileTypes } from './domain/pipelines/file_type.entities';
 import { InputDescription } from './domain/pipelines/input_description.entities';
 import { OutputDescription } from './domain/pipelines/output_description.entities';
 import { Version } from './domain/pipelines/version.entities';
+import { CodeController } from './presentation/controllers/code.controller';
+import { CodeService } from './domain/pipelines/service/code.service';
 import { RabbitMQService } from './infrastructure/messaging/rabbitmq.service';
 import { MessagesController } from './infrastructure/messaging/messages.controller';
+import { ObjectStorageModule } from './infrastructure/object-storage/object-storage.module';
+import { FileService } from './domain/pipelines/code-runner/file.service';
+import { FileEntity } from './domain/pipelines/code-runner/file.entities';
+import { FileController } from './presentation/controllers/files.controller';
 
 @Module({
 	imports: [
@@ -62,12 +66,14 @@ import { MessagesController } from './infrastructure/messaging/messages.controll
 			FileTypes,
 			InputDescription,
 			OutputDescription,
+			FileEntity,
 		]),
 		TypeOrmModule.forRoot(dbdatasource),
 		JwtModule.register({
 			secret: jwtConstants.secret,
 			signOptions: { expiresIn: jwtConstants.expiresIn },
 		}),
+		ObjectStorageModule,
 	],
 	controllers: [
 		AppController,
@@ -79,6 +85,7 @@ import { MessagesController } from './infrastructure/messaging/messages.controll
 		CommentController,
 		CodeController,
 		MessagesController,
+		FileController,
 	],
 	providers: [
 		AppService,
@@ -96,6 +103,7 @@ import { MessagesController } from './infrastructure/messaging/messages.controll
 		ReactionService,
 		CodeService,
 		RabbitMQService,
+		FileService,
 	],
 })
 export class AppModule {}

@@ -15,10 +15,16 @@ import { Roles } from '../../infrastructure/auth/roles.decorator';
 import { UpdateUserProfileDto } from '../../domain/users/dto/updateUserDTO';
 import { ToggleUserPrivacyDto } from '../../domain/users/dto/toggleUserPrivacyDto';
 import { PinPostDto } from '../../domain/users/dto/pinPostDTO';
+import { ObjectStorageService } from '../../infrastructure/object-storage/object-storage.service';
+import { FileService } from '../../domain/pipelines/code-runner/file.service';
 
 @Controller('users')
 export class UsersController {
-	constructor(private usersService: UsersService) {}
+	constructor(
+		private usersService: UsersService,
+		private minioService: ObjectStorageService,
+		private fileService: FileService
+	) {}
 
 	@UseGuards(RolesGuard)
 	@UseGuards(JwtAuthGuard)

@@ -1,4 +1,6 @@
 import { IsOptional, IsString } from 'class-validator';
+import { FileEntity } from '../../pipelines/code-runner/file.entities';
+import { Type } from 'class-transformer';
 
 export class UpdateUserProfileDto {
 	@IsString()
@@ -16,4 +18,8 @@ export class UpdateUserProfileDto {
 	@IsString()
 	@IsOptional()
 	description?: string;
+
+	@Type(() => FileEntity)
+	@IsOptional()
+	profilePicture?: FileEntity;
 }
