@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsBoolean, IsInt } from 'class-validator';
+import { IsString, IsBoolean, IsInt, IsOptional } from 'class-validator';
 
 export class EndPipelineStepDTO {
 	@ApiProperty({
@@ -29,5 +29,6 @@ export class EndPipelineStepDTO {
 		format: 'binary',
 	})
 	@IsInt()
+	@IsOptional()
 	outputFileId: number;
 }

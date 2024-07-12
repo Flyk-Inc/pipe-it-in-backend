@@ -4,12 +4,14 @@ import {
 	Get,
 	Param,
 	ParseIntPipe,
+	Patch,
 	Post,
 } from '@nestjs/common';
 import { PipelineService } from '../../domain/pipelines/service/pipeline.service';
 import { CreatePipelineDTO } from '../../domain/pipelines/dto/create_pipeline.dto';
 import { Pipeline } from '../../domain/pipelines/code-runner/pipeline.entities';
 import { PipeLineStepInfos } from '../../domain/pipelines/code-runner/pipeline_run_step.entities';
+import { EndPipelineStepDTO } from '../../domain/pipelines/dto/end_pipeline_step.dto';
 
 @Controller('pipeline')
 export class PipelineController {
@@ -35,5 +37,13 @@ export class PipelineController {
 		@Param('stepId', ParseIntPipe) stepId: number
 	): Promise<PipeLineStepInfos> {
 		return this.pipelineService.getPipelineRunStepInfos(stepId);
+	}
+
+	@Patch('step/:stepId/end')
+	async endPipelineStep(
+		@Param('stepId', ParseIntPipe) stepId: number,
+		@Body() endPipelineStepDto: EndPipelineStepDTO
+	) {
+		await this.pipelineService.endPipelineRunStep(stepId, endPipelineStepDto);
 	}
 }

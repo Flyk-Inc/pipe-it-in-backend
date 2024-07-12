@@ -17,6 +17,9 @@ import {
 	CreatePipelineCodeDTO,
 	CreatePipelineDTO,
 } from '../dto/create_pipeline.dto';
+import { EndPipelineStepDTO } from '../dto/end_pipeline_step.dto';
+import { RabbitMQService } from '../../../infrastructure/messaging/rabbitmq.service';
+import * as process from 'node:process';
 
 @Injectable()
 export class PipelineService {
@@ -30,7 +33,8 @@ export class PipelineService {
 		@InjectRepository(Run)
 		private runRepository: Repository<Run>,
 		@InjectRepository(PipelineRunStep)
-		private pipelineRunStepRepository: Repository<PipelineRunStep>
+		private pipelineRunStepRepository: Repository<PipelineRunStep>,
+		private readonly rabbitMQService: RabbitMQService
 	) {}
 
 	async createPipeline(
@@ -144,11 +148,11 @@ export class PipelineService {
 			})
 		);
 
-		const savedPipelineRunSteps =
+		savedRun.pipelineRunSteps =
 			await this.pipelineRunStepRepository.save(pipelineRunSteps);
-		savedRun.pipelineRunSteps = savedPipelineRunSteps;
-		console.log(savedPipelineRunSteps);
-		// Stub to post the first step job to a queue service
+		savedRun.pipelineRunSteps.sort((a, b) => {
+			return a.step - b.step;
+		});
 		await this.postToQueueService(savedRun.pipelineRunSteps[0]);
 
 		return this.runRepository.findOne({
@@ -157,12 +161,11 @@ export class PipelineService {
 		});
 	}
 
-	// Stub function to simulate posting to a queue service
-	private async postToQueueService(firstStep: PipelineRunStep): Promise<void> {
-		console.log(
-			`Posting step ${firstStep.step} of run ID ${firstStep.run.id} to the queue service`
-		);
-		// Implementation to post to the actual queue service would go here
+	private async postToQueueService(step: PipelineRunStep): Promise<void> {
+		await this.rabbitMQService.sendMessage({
+			pipelineRunStepId: step.id,
+			backendHost: process.env.HOST,
+		});
 	}
 
 	async getPipelineRunStepInfos(stepId: number): Promise<PipeLineStepInfos> {
@@ -176,5 +179,45 @@ export class PipelineService {
 			language: stepinfos.version.code.language,
 			inputFile: stepinfos.inputFile?.id,
 		};
+	}
+
+	async endPipelineRunStep(
+		stepId: number,
+		endPipelineStepDto: EndPipelineStepDTO
+	) {
+		const stepinfos = await this.pipelineRunStepRepository.findOne({
+			where: { id: stepId },
+			relations: ['run', 'version', 'version.code', 'inputFile'],
+		});
+
+		if (!stepinfos) {
+			throw new NotFoundException(`Step with ID ${stepId} not found`);
+		}
+
+		stepinfos.executed = true;
+		stepinfos.error = endPipelineStepDto.isError;
+		stepinfos.stderr = endPipelineStepDto.stderr;
+		stepinfos.stdout = endPipelineStepDto.stdout;
+
+		if (endPipelineStepDto.outputFileId) {
+			stepinfos.outputFile = { id: endPipelineStepDto.outputFileId } as any;
+		}
+
+		await this.pipelineRunStepRepository.save(stepinfos);
+
+		if (endPipelineStepDto.isError) {
+			return;
+		}
+
+		const nextStep = await this.pipelineRunStepRepository.findOne({
+			where: {
+				run: { id: stepinfos.run.id },
+				step: stepinfos.step + 1,
+			},
+		});
+
+		if (nextStep) {
+			await this.postToQueueService(nextStep);
+		}
 	}
 }
