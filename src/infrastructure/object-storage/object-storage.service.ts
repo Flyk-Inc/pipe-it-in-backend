@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Client } from 'minio';
 import * as process from 'process';
 import { Readable } from 'stream';
@@ -38,8 +38,8 @@ export class ObjectStorageService {
 	}
 
 	async uploadFile(file: Express.Multer.File) {
-		if (!file.mimetype.includes('image')) {
-			throw new Error('Invalid file type');
+		if (!file.mimetype.includes('image') && !file.mimetype.includes('text')) {
+			throw new BadRequestException('Invalid file type');
 		}
 
 		if (file.size > Number(process.env.MAX_FILE_SIZE)) {

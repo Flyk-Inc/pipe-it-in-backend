@@ -3,6 +3,7 @@ import {
 	Get,
 	Param,
 	Patch,
+	Post,
 	Request,
 	Res,
 	StreamableFile,
@@ -32,6 +33,7 @@ export class FileController {
 		@Param('id') fileId: string,
 		@Res({ passthrough: true }) res: Response
 	) {
+		console.log('coucou');
 		const fileEntity = await this.fileService.getFile(fileId);
 		try {
 			const storageFile = await this.minioService.getFile(
@@ -48,9 +50,20 @@ export class FileController {
 	}
 
 	@UseGuards(JwtAuthGuard)
-	@Patch('profile-picture')
+	@Post()
 	@UseInterceptors(FileInterceptor('file'))
 	async uploadFile(
+		@Request() req: SignedInRequest,
+		@UploadedFile() file: Express.Multer.File
+	) {
+		const fileName = await this.minioService.uploadFile(file);
+		return await this.fileService.saveFile(file, fileName);
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@Patch('profile-picture')
+	@UseInterceptors(FileInterceptor('file'))
+	async uploadProfilePicture(
 		@Request() req: SignedInRequest,
 		@UploadedFile() file: Express.Multer.File
 	) {
