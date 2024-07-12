@@ -9,7 +9,7 @@ export class Migration1720693794828 implements MigrationInterface {
 			`CREATE TABLE "files" ("id" SERIAL NOT NULL, "name" character varying NOT NULL, "size" integer NOT NULL, "storage_path" character varying NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_6c16b9093a142e0e7613b04a3d9" PRIMARY KEY ("id"))`
 		);
 		await queryRunner.query(
-			`CREATE TABLE "Pipeline_Run_Steps" ("id" SERIAL NOT NULL, "step" integer NOT NULL, "executed" boolean NOT NULL DEFAULT false, "error" boolean NOT NULL DEFAULT false, "stdout" text NOT NULL, "stderr" text NOT NULL, "timestamps" TIMESTAMP NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "runId" integer, "versionId" integer, "inputFileId" integer, "outputFileId" integer, CONSTRAINT "PK_195d5e2c73fcaf02fdbcae65b53" PRIMARY KEY ("id"))`
+			`CREATE TABLE "Pipeline_Run_Steps" ("id" SERIAL NOT NULL, "step" integer NOT NULL, "executed" boolean NOT NULL DEFAULT false, "error" boolean NOT NULL DEFAULT false, "stdout" text NOT NULL, "stderr" text NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "runId" integer, "versionId" integer, "inputFileId" integer, "outputFileId" integer, CONSTRAINT "PK_195d5e2c73fcaf02fdbcae65b53" PRIMARY KEY ("id"))`
 		);
 		await queryRunner.query(
 			`CREATE TABLE "Runs" ("id" SERIAL NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "pipelineId" integer, CONSTRAINT "PK_b3706ebd76a00b72af0469b79f2" PRIMARY KEY ("id"))`

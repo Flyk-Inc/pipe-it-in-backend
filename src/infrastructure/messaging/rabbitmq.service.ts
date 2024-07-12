@@ -4,12 +4,17 @@ import { configDotenv } from 'dotenv';
 
 configDotenv();
 
+export interface RunPipelineStepMessage {
+	backendHost: string;
+	pipelineRunStepId: number;
+}
+
 @Injectable()
 export class RabbitMQService {
 	private readonly url = process.env.RABBIT_SERVICE_DEV;
 	private readonly queue = process.env.RABBIT_PIPELINE_RUN_STEP_QUEUE;
 
-	async sendMessage(message: any) {
+	async sendMessage(message: RunPipelineStepMessage) {
 		const connection = await amqp.connect(this.url);
 		const channel = await connection.createChannel();
 		await channel.assertQueue(this.queue);

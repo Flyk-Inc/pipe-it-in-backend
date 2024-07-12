@@ -20,7 +20,9 @@ export class Pipeline {
 	@Column({ type: 'text' })
 	description: string;
 
-	@OneToMany(() => PipelineCode, pipelineCode => pipelineCode.pipeline)
+	@OneToMany(() => PipelineCode, pipelineCode => pipelineCode.pipeline, {
+		cascade: true,
+	})
 	pipelineCodes: PipelineCode[];
 
 	@OneToMany(() => Run, run => run.pipeline)
