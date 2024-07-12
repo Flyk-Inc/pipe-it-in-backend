@@ -38,6 +38,12 @@ import { FileTypes } from './domain/pipelines/file_type.entities';
 import { InputDescription } from './domain/pipelines/input_description.entities';
 import { OutputDescription } from './domain/pipelines/output_description.entities';
 import { Version } from './domain/pipelines/version.entities';
+import { PipelineService } from './domain/pipelines/service/pipeline.service';
+import { Pipeline } from './domain/pipelines/code-runner/pipeline.entities';
+import { PipelineCode } from './domain/pipelines/code-runner/pipeline_code.entities';
+import { PipelineController } from './presentation/controllers/pipeline.controller';
+import { Run } from './domain/pipelines/code-runner/run.entities';
+import { PipelineRunStep } from './domain/pipelines/code-runner/pipeline_run_step.entities';
 import { CodeController } from './presentation/controllers/code.controller';
 import { CodeService } from './domain/pipelines/service/code.service';
 import { RabbitMQService } from './infrastructure/messaging/rabbitmq.service';
@@ -66,6 +72,10 @@ import { FileController } from './presentation/controllers/files.controller';
 			FileTypes,
 			InputDescription,
 			OutputDescription,
+			Pipeline,
+			PipelineCode,
+			Run,
+			PipelineRunStep,
 			FileEntity,
 		]),
 		TypeOrmModule.forRoot(dbdatasource),
@@ -86,6 +96,7 @@ import { FileController } from './presentation/controllers/files.controller';
 		CodeController,
 		MessagesController,
 		FileController,
+		PipelineController,
 	],
 	providers: [
 		AppService,
@@ -102,6 +113,7 @@ import { FileController } from './presentation/controllers/files.controller';
 		LikeService,
 		ReactionService,
 		CodeService,
+		PipelineService,
 		RabbitMQService,
 		FileService,
 	],

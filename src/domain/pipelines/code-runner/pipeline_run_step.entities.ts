@@ -30,24 +30,27 @@ export class PipelineRunStep {
 	@Column({ default: false })
 	error: boolean;
 
-	@Column({ type: 'text' })
-	stdout: string;
+	@Column({ type: 'text', nullable: true })
+	stdout?: string;
 
-	@Column({ type: 'text' })
-	stderr: string;
+	@Column({ type: 'text', nullable: true })
+	stderr?: string;
 
-	@ManyToOne(() => FileEntity)
-	inputFile: FileEntity;
+	@ManyToOne(() => FileEntity, { nullable: true })
+	inputFile?: FileEntity;
 
-	@ManyToOne(() => FileEntity)
-	outputFile: FileEntity;
-
-	@Column({ type: 'timestamp' })
-	timestamps: Date;
+	@ManyToOne(() => FileEntity, { nullable: true })
+	outputFile?: FileEntity;
 
 	@CreateDateColumn({ type: 'timestamp' })
 	createdAt: Date;
 
 	@UpdateDateColumn({ type: 'timestamp' })
 	updatedAt: Date;
+}
+
+export class PipeLineStepInfos {
+	inputFile: string;
+	language: string;
+	code: string;
 }
