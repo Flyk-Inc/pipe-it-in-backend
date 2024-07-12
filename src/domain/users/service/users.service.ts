@@ -38,7 +38,10 @@ export class UsersService {
 	}
 
 	async getUserByEmail(email: string): Promise<User | null> {
-		return await this.usersRepository.findOne({ where: { email } });
+		return await this.usersRepository.findOne({
+			where: { email },
+			relations: ['roles', 'profilePicture'],
+		});
 	}
 
 	async updateUserProfile(
