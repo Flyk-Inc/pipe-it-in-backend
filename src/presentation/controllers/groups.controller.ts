@@ -12,10 +12,10 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CreateGroupDTO } from '../../domain/groups/dto/createGroupDTO';
-import { UpdateGroupDTO } from '../../domain/groups/dto/updateGroupDTO';
 import { GroupService } from '../../domain/groups/service/groups.service';
 import { SignedInRequest } from '../../infrastructure/auth/strategies/jwt.strategy';
 import { JwtAuthGuard } from '../../infrastructure/auth/guards/jwt-auth.guard';
+import { UpdateGroupDTO } from '../../domain/groups/dto/UpdateGroupDTO';
 
 @ApiTags('groups')
 @ApiBearerAuth()
