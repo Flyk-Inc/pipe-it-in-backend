@@ -40,7 +40,7 @@ export class UsersService {
 	async getUserByEmail(email: string): Promise<User | null> {
 		return await this.usersRepository.findOne({
 			where: { email },
-			relations: ['roles', 'profilePicture'],
+			relations: ['roles', 'profilePicture', 'followers', 'following', 'posts'],
 		});
 	}
 
@@ -87,6 +87,16 @@ export class UsersService {
 		}
 
 		user.pinnedPost = pinPostDto.postId;
+		return this.usersRepository.save(user);
+	}
+
+	async unpinPost(userId: number): Promise<User> {
+		const user = await this.usersRepository.findOne({ where: { id: userId } });
+		if (!user) {
+			throw new NotFoundException('User not found');
+		}
+
+		user.pinnedPost = null;
 		return this.usersRepository.save(user);
 	}
 }
