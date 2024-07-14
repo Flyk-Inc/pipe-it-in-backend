@@ -15,16 +15,10 @@ import { Roles } from '../../infrastructure/auth/roles.decorator';
 import { UpdateUserProfileDto } from '../../domain/users/dto/updateUserDTO';
 import { ToggleUserPrivacyDto } from '../../domain/users/dto/toggleUserPrivacyDto';
 import { PinPostDto } from '../../domain/users/dto/pinPostDTO';
-import { ObjectStorageService } from '../../infrastructure/object-storage/object-storage.service';
-import { FileService } from '../../domain/pipelines/code-runner/file.service';
 
 @Controller('users')
 export class UsersController {
-	constructor(
-		private usersService: UsersService,
-		private minioService: ObjectStorageService,
-		private fileService: FileService
-	) {}
+	constructor(private usersService: UsersService) {}
 
 	@UseGuards(RolesGuard)
 	@UseGuards(JwtAuthGuard)
@@ -62,5 +56,11 @@ export class UsersController {
 	@Patch('pin-post')
 	pinPost(@Request() req: SignedInRequest, @Body() pinPostDto: PinPostDto) {
 		return this.usersService.pinPost(req.user.userId, pinPostDto);
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@Patch('unpin-post')
+	unpinPost(@Request() req: SignedInRequest) {
+		return this.usersService.unpinPost(req.user.userId);
 	}
 }

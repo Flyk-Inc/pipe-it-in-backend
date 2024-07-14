@@ -27,13 +27,11 @@ export class FileController {
 		private usersService: UsersService
 	) {}
 
-	@UseGuards(JwtAuthGuard)
 	@Get(':id')
 	async getFile(
 		@Param('id') fileId: string,
 		@Res({ passthrough: true }) res: Response
 	) {
-		console.log('coucou');
 		const fileEntity = await this.fileService.getFile(fileId);
 		try {
 			const storageFile = await this.minioService.getFile(
