@@ -20,6 +20,8 @@ import {
 import { EndPipelineStepDTO } from '../dto/end_pipeline_step.dto';
 import { RabbitMQService } from '../../../infrastructure/messaging/rabbitmq.service';
 import * as process from 'node:process';
+import { RunTestCodeDTO } from '../dto/run_test_code.dto';
+import { Code } from '../code.entities';
 
 @Injectable()
 export class PipelineService {
@@ -28,6 +30,8 @@ export class PipelineService {
 		private pipelineRepository: Repository<Pipeline>,
 		@InjectRepository(PipelineCode)
 		private pipelineCodeRepository: Repository<PipelineCode>,
+		@InjectRepository(Code)
+		private codeRepository: Repository<Code>,
 		@InjectRepository(Version)
 		private versionRepository: Repository<Version>,
 		@InjectRepository(Run)
@@ -118,10 +122,15 @@ export class PipelineService {
 		});
 	}
 
-	async runPipeline(pipelineId: number): Promise<Run> {
+	async runPipeline(pipelineId: number, userId: number): Promise<Run> {
 		const pipeline = await this.pipelineRepository.findOne({
 			where: { id: pipelineId },
-			relations: ['pipelineCodes', 'pipelineCodes.version'],
+			relations: [
+				'pipelineCodes',
+				'pipelineCodes.version',
+				'pipelineCodes.version.input',
+				'pipelineCodes.version.code',
+			],
 		});
 
 		if (!pipeline) {
@@ -135,15 +144,17 @@ export class PipelineService {
 
 		const savedRun = await this.runRepository.save(run);
 
-		console.log(pipeline.pipelineCodes);
 		const pipelineRunSteps = await Promise.all(
 			pipeline.pipelineCodes.map(pipelineCode => {
 				return this.pipelineRunStepRepository.create({
 					run: savedRun,
-					version: pipelineCode.version,
 					step: pipelineCode.step,
 					executed: false,
 					error: false,
+					user: { id: userId },
+					needsInput: pipelineCode.version.input.length > 0,
+					codeContent: pipelineCode.version.codeContent,
+					language: pipelineCode.version.code.language,
 				});
 			})
 		);
@@ -157,8 +168,32 @@ export class PipelineService {
 
 		return this.runRepository.findOne({
 			where: { id: savedRun.id },
-			relations: ['pipeline', 'pipelineRunSteps', 'pipelineRunSteps.version'],
+			relations: ['pipeline', 'pipelineRunSteps'],
 		});
+	}
+
+	async runTestCode(
+		codeId: number,
+		runTestCodeDto: RunTestCodeDTO,
+		fileId: string | undefined = undefined
+	) {
+		const code = await this.codeRepository.findOne({
+			where: { id: codeId },
+			relations: ['author'],
+		});
+		const codeRunStep = this.pipelineRunStepRepository.create({
+			executed: false,
+			error: false,
+			needsInput: fileId !== undefined,
+			inputFile: fileId ? { id: fileId } : null,
+			codeContent: runTestCodeDto.codeContent,
+			language: runTestCodeDto.language,
+			code: { id: code.id },
+			user: { id: code.author.id },
+		});
+
+		const savedStep = await this.pipelineRunStepRepository.save(codeRunStep);
+		await this.postToQueueService(savedStep);
 	}
 
 	private async postToQueueService(step: PipelineRunStep): Promise<void> {
@@ -171,12 +206,12 @@ export class PipelineService {
 	async getPipelineRunStepInfos(stepId: number): Promise<PipeLineStepInfos> {
 		const stepinfos = await this.pipelineRunStepRepository.findOne({
 			where: { id: stepId },
-			relations: ['version', 'version.code', 'inputFile'],
+			relations: ['inputFile'],
 		});
 
 		return {
-			code: stepinfos.version.codeContent,
-			language: stepinfos.version.code.language,
+			code: stepinfos.codeContent,
+			language: stepinfos.language,
 			inputFile: stepinfos.inputFile?.id,
 		};
 	}
@@ -185,34 +220,38 @@ export class PipelineService {
 		stepId: number,
 		endPipelineStepDto: EndPipelineStepDTO
 	) {
-		const stepinfos = await this.pipelineRunStepRepository.findOne({
+		const codeRunStep = await this.pipelineRunStepRepository.findOne({
 			where: { id: stepId },
-			relations: ['run', 'version', 'version.code', 'inputFile'],
+			relations: ['run', 'inputFile'],
 		});
 
-		if (!stepinfos) {
+		if (!codeRunStep) {
 			throw new NotFoundException(`Step with ID ${stepId} not found`);
 		}
 
-		stepinfos.executed = true;
-		stepinfos.error = endPipelineStepDto.isError;
-		stepinfos.stderr = endPipelineStepDto.stderr;
-		stepinfos.stdout = endPipelineStepDto.stdout;
+		codeRunStep.executed = true;
+		codeRunStep.error = endPipelineStepDto.isError;
+		codeRunStep.stderr = endPipelineStepDto.stderr;
+		codeRunStep.stdout = endPipelineStepDto.stdout;
 
 		if (endPipelineStepDto.outputFileId) {
-			stepinfos.outputFile = { id: endPipelineStepDto.outputFileId } as any;
+			codeRunStep.outputFile = { id: endPipelineStepDto.outputFileId } as any;
 		}
 
-		await this.pipelineRunStepRepository.save(stepinfos);
+		await this.pipelineRunStepRepository.save(codeRunStep);
 
 		if (endPipelineStepDto.isError) {
 			return;
 		}
 
+		if (codeRunStep.step === null || codeRunStep.run === undefined) {
+			return;
+		}
+
 		const nextStep = await this.pipelineRunStepRepository.findOne({
 			where: {
-				run: { id: stepinfos.run.id },
-				step: stepinfos.step + 1,
+				run: { id: codeRunStep.run.id },
+				step: codeRunStep.step + 1,
 			},
 		});
 

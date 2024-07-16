@@ -15,6 +15,7 @@ import { OutputDescription } from '../output_description.entities';
 import { FileTypes } from '../file_type.entities';
 import { CreateVersionDTO } from '../dto/create-version.dto';
 import { UpdateVersionDTO } from '../dto/update-version.dto';
+import { PipelineRunStep } from '../code-runner/pipeline_run_step.entities';
 
 @Injectable()
 export class CodeService {
@@ -25,6 +26,8 @@ export class CodeService {
 		private versionRepository: Repository<Version>,
 		@InjectRepository(User)
 		private userRepository: Repository<User>,
+		@InjectRepository(PipelineRunStep)
+		private testRunRepository: Repository<PipelineRunStep>,
 		@InjectRepository(InputDescription)
 		private inputDescriptionRepository: Repository<InputDescription>,
 		@InjectRepository(OutputDescription)
@@ -378,6 +381,7 @@ export class CodeService {
 				input: { fileType: true },
 				output: { fileType: true },
 				versions: { input: { fileType: true }, output: { fileType: true } },
+				testRuns: { outputFile: true, inputFile: true },
 			},
 		});
 
@@ -391,5 +395,12 @@ export class CodeService {
 		}
 
 		return code;
+	}
+
+	async getCodeTestRuns(codeId: number, userId: number) {
+		return await this.testRunRepository.find({
+			where: { code: { id: codeId }, user: { id: userId } },
+			relations: { inputFile: true, outputFile: true },
+		});
 	}
 }
