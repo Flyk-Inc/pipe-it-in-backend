@@ -11,6 +11,7 @@ import { User } from '../users/users.entities';
 import { Version } from './version.entities';
 import { OutputDescription } from './output_description.entities';
 import { InputDescription } from './input_description.entities';
+import { PipelineRunStep } from './code-runner/pipeline_run_step.entities';
 
 @Entity({ name: 'Codes' })
 export class Code {
@@ -54,6 +55,9 @@ export class Code {
 	@OneToMany(() => Version, version => version.code)
 	versions: Version[];
 
+	@OneToMany(() => PipelineRunStep, testResult => testResult.code)
+	testRuns: PipelineRunStep[];
+
 	@OneToMany(() => InputDescription, inputDescription => inputDescription.code)
 	input: InputDescription[];
 
@@ -85,6 +89,12 @@ export class Code {
 			output: this.output,
 			versions: this.versions
 				? this.versions.sort(
+						(a, b) =>
+							new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+					)
+				: [],
+			testRuns: this.testRuns
+				? this.testRuns.sort(
 						(a, b) =>
 							new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
 					)

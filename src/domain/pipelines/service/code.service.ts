@@ -378,6 +378,7 @@ export class CodeService {
 				input: { fileType: true },
 				output: { fileType: true },
 				versions: { input: { fileType: true }, output: { fileType: true } },
+				testRuns: { outputFile: true, inputFile: true },
 			},
 		});
 

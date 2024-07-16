@@ -39,7 +39,7 @@ export class FileController {
 			);
 			res.set({
 				'Content-Type': 'image/jpeg',
-				'Content-Disposition': `attachment; filename="${fileId}"`,
+				'Content-Disposition': `attachment; filename="${fileEntity.name}"`,
 			});
 			return new StreamableFile(storageFile);
 		} catch (error) {
@@ -47,13 +47,9 @@ export class FileController {
 		}
 	}
 
-	@UseGuards(JwtAuthGuard)
 	@Post()
 	@UseInterceptors(FileInterceptor('file'))
-	async uploadFile(
-		@Request() req: SignedInRequest,
-		@UploadedFile() file: Express.Multer.File
-	) {
+	async uploadFile(@UploadedFile() file: Express.Multer.File) {
 		const fileName = await this.minioService.uploadFile(file);
 		return await this.fileService.saveFile(file, fileName);
 	}

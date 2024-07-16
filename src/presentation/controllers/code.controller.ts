@@ -3,11 +3,14 @@ import {
 	Controller,
 	Get,
 	Param,
+	ParseFilePipeBuilder,
 	ParseIntPipe,
 	Patch,
 	Post,
 	Req,
+	UploadedFile,
 	UseGuards,
+	UseInterceptors,
 } from '@nestjs/common';
 import { CreateCodeDTO } from '../../domain/pipelines/dto/createCodeDTO';
 import { Code } from '../../domain/pipelines/code.entities';
@@ -18,10 +21,20 @@ import { JwtAuthGuard } from '../../infrastructure/auth/guards/jwt-auth.guard';
 import { Version } from '../../domain/pipelines/version.entities';
 import { CreateVersionDTO } from '../../domain/pipelines/dto/create-version.dto';
 import { UpdateVersionDTO } from '../../domain/pipelines/dto/update-version.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { RunTestCodeDTO } from '../../domain/pipelines/dto/run_test_code.dto';
+import { PipelineService } from '../../domain/pipelines/service/pipeline.service';
+import { ObjectStorageService } from '../../infrastructure/object-storage/object-storage.service';
+import { FileService } from '../../domain/pipelines/code-runner/file.service';
 
 @Controller('codes')
 export class CodeController {
-	constructor(private readonly codeService: CodeService) {}
+	constructor(
+		private readonly codeService: CodeService,
+		private readonly pipelineService: PipelineService,
+		private minioService: ObjectStorageService,
+		private fileService: FileService
+	) {}
 
 	@Post()
 	@UseGuards(JwtAuthGuard)
@@ -85,5 +98,27 @@ export class CodeController {
 		@Req() req: SignedInRequest
 	): Promise<Code> {
 		return this.codeService.getCodeDetailById(codeId, req.user.userId);
+	}
+
+	@Post(':codeId/test')
+	@UseInterceptors(FileInterceptor('file'))
+	async runTestcode(
+		@Param('codeId', ParseIntPipe) codeId: number,
+		@Body() runTestCodeDto: RunTestCodeDTO,
+		@UploadedFile(
+			new ParseFilePipeBuilder().addMaxSizeValidator({ maxSize: 2048 }).build({
+				fileIsRequired: false,
+			})
+		)
+		file: Express.Multer.File
+	) {
+		let fileId: string | undefined = undefined;
+		if (file) {
+			console.log(file);
+			const fileName = await this.minioService.uploadFile(file);
+			const savedFile = await this.fileService.saveFile(file, fileName);
+			fileId = savedFile.id;
+		}
+		await this.pipelineService.runTestCode(codeId, runTestCodeDto, fileId);
 	}
 }

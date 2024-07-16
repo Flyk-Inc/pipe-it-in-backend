@@ -7,8 +7,9 @@ import {
 	UpdateDateColumn,
 } from 'typeorm';
 import { Run } from './run.entities';
-import { Version } from '../version.entities';
 import { FileEntity } from './file.entities';
+import { User } from '../../users/users.entities';
+import { Code } from '../code.entities';
 
 @Entity({ name: 'Pipeline_Run_Steps' })
 export class PipelineRunStep {
@@ -16,13 +17,10 @@ export class PipelineRunStep {
 	id: number;
 
 	@ManyToOne(() => Run, run => run.pipelineRunSteps)
-	run: Run;
+	run?: Run;
 
-	@ManyToOne(() => Version, version => version.pipelineRunSteps)
-	version: Version;
-
-	@Column()
-	step: number;
+	@Column({ nullable: true })
+	step?: number;
 
 	@Column({ default: false })
 	executed: boolean;
@@ -36,17 +34,47 @@ export class PipelineRunStep {
 	@Column({ type: 'text', nullable: true })
 	stderr?: string;
 
+	@Column()
+	needsInput: boolean;
+
 	@ManyToOne(() => FileEntity, { nullable: true })
 	inputFile?: FileEntity;
 
 	@ManyToOne(() => FileEntity, { nullable: true })
 	outputFile?: FileEntity;
 
+	@Column({ type: 'text' })
+	codeContent: string;
+
+	@Column()
+	language: string;
+
+	@ManyToOne(() => Code, code => code.versions, { eager: false })
+	code: Code;
+
+	@ManyToOne(() => User)
+	user: User;
+
 	@CreateDateColumn({ type: 'timestamp' })
 	createdAt: Date;
 
 	@UpdateDateColumn({ type: 'timestamp' })
 	updatedAt: Date;
+
+	toJSON() {
+		return {
+			id: this.id,
+			executed: this.executed,
+			error: this.error,
+			needsInput: this.needsInput,
+			inputFile: this.inputFile ? this.inputFile.id : undefined,
+			outputFile: this.outputFile ? this.outputFile.id : undefined,
+			stderr: this.stderr,
+			stdout: this.stdout,
+			step: this.step ? this.step : undefined,
+			createdAt: this.createdAt,
+		};
+	}
 }
 
 export class PipeLineStepInfos {
