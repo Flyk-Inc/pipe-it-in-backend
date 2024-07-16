@@ -10,7 +10,6 @@ import { CreateUserDTO } from '../dto/createUserDTO';
 import { Role } from '../../../infrastructure/auth/roles.entities';
 import { Posts } from '../../content/posts.entities';
 import { UpdateUserProfileDto } from '../dto/updateUserDTO';
-import { ToggleUserPrivacyDto } from '../dto/toggleUserPrivacyDto';
 import { PinPostDto } from '../dto/pinPostDTO';
 
 @Injectable()
@@ -63,25 +62,15 @@ export class UsersService {
 		userId: number,
 		updateUserProfileDto: UpdateUserProfileDto
 	): Promise<User> {
-		const user = await this.usersRepository.findOne({ where: { id: userId } });
+		const user = await this.usersRepository.findOne({
+			where: { id: userId },
+			relations: ['roles', 'profilePicture', 'followers', 'following', 'posts'],
+		});
 		if (!user) {
 			throw new NotFoundException('User not found');
 		}
 
-		const updatedUser = Object.assign(user, updateUserProfileDto);
-		return this.usersRepository.save(updatedUser);
-	}
-
-	async toggleUserPrivacy(
-		userId: number,
-		toggleUserPrivacyDto: ToggleUserPrivacyDto
-	): Promise<User> {
-		const user = await this.usersRepository.findOne({ where: { id: userId } });
-		if (!user) {
-			throw new NotFoundException('User not found');
-		}
-
-		user.isPrivate = toggleUserPrivacyDto.isPrivate;
+		this.usersRepository.merge(user, updateUserProfileDto);
 		return this.usersRepository.save(user);
 	}
 

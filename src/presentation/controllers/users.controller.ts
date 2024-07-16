@@ -14,7 +14,6 @@ import { RolesGuard } from '../../infrastructure/auth/roles.guard';
 import { Role } from '../../infrastructure/auth/roles.enum';
 import { Roles } from '../../infrastructure/auth/roles.decorator';
 import { UpdateUserProfileDto } from '../../domain/users/dto/updateUserDTO';
-import { ToggleUserPrivacyDto } from '../../domain/users/dto/toggleUserPrivacyDto';
 import { PinPostDto } from '../../domain/users/dto/pinPostDTO';
 
 @Controller('users')
@@ -44,18 +43,6 @@ export class UsersController {
 		return this.usersService.updateUserProfile(
 			req.user.userId,
 			updateUserProfileDto
-		);
-	}
-
-	@UseGuards(JwtAuthGuard)
-	@Patch('privacy')
-	togglePrivacy(
-		@Request() req: SignedInRequest,
-		@Body() toggleUserPrivacyDto: ToggleUserPrivacyDto
-	) {
-		return this.usersService.toggleUserPrivacy(
-			req.user.userId,
-			toggleUserPrivacyDto
 		);
 	}
 
