@@ -44,6 +44,21 @@ export class UsersService {
 		});
 	}
 
+	async getUserById(id: number): Promise<User | null> {
+		return await this.usersRepository.findOne({
+			where: { id },
+			relations: [
+				'roles',
+				'profilePicture',
+				'followers',
+				'followers.follower',
+				'following',
+				'following.follower',
+				'posts',
+			],
+		});
+	}
+
 	async updateUserProfile(
 		userId: number,
 		updateUserProfileDto: UpdateUserProfileDto

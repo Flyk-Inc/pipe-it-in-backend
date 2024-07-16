@@ -2,6 +2,7 @@ import {
 	Body,
 	Controller,
 	Get,
+	Param,
 	Patch,
 	Request,
 	UseGuards,
@@ -26,6 +27,12 @@ export class UsersController {
 	@Get('profile')
 	getProfile(@Request() req: SignedInRequest) {
 		return this.usersService.getUserByEmail(req.user.email);
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@Get(':id')
+	getUserById(@Param('id') id: number) {
+		return this.usersService.getUserById(id);
 	}
 
 	@UseGuards(JwtAuthGuard)
