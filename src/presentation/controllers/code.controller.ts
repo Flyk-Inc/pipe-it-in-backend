@@ -26,6 +26,7 @@ import { RunTestCodeDTO } from '../../domain/pipelines/dto/run_test_code.dto';
 import { PipelineService } from '../../domain/pipelines/service/pipeline.service';
 import { ObjectStorageService } from '../../infrastructure/object-storage/object-storage.service';
 import { FileService } from '../../domain/pipelines/code-runner/file.service';
+import { PipelineRunStep } from '../../domain/pipelines/code-runner/pipeline_run_step.entities';
 
 @Controller('codes')
 export class CodeController {
@@ -98,6 +99,15 @@ export class CodeController {
 		@Req() req: SignedInRequest
 	): Promise<Code> {
 		return this.codeService.getCodeDetailById(codeId, req.user.userId);
+	}
+
+	@Get(':codeId/testRuns')
+	@UseGuards(JwtAuthGuard)
+	async getCodeTestRuns(
+		@Param('codeId', ParseIntPipe) codeId: number,
+		@Req() req: SignedInRequest
+	): Promise<PipelineRunStep[]> {
+		return this.codeService.getCodeTestRuns(codeId, req.user.userId);
 	}
 
 	@Post(':codeId/test')
