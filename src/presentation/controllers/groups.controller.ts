@@ -82,7 +82,7 @@ export class GroupController {
 	}
 
 	@UseGuards(JwtAuthGuard)
-	@Get(':userId')
+	@Get('user/:userId')
 	async getUserGroups(@Param('userId', ParseIntPipe) userId: number) {
 		return await this.groupService.getUserGroups(userId);
 	}
