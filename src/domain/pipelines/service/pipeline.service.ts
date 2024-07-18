@@ -42,12 +42,14 @@ export class PipelineService {
 	) {}
 
 	async createPipeline(
-		createPipelineDto: CreatePipelineDTO
+		createPipelineDto: CreatePipelineDTO,
+		userId: number
 	): Promise<Pipeline> {
 		const pipeline = this.pipelineRepository.create({
 			title: createPipelineDto.title,
 			description: createPipelineDto.description,
 			pipelineCodes: [],
+			user: { id: userId },
 		});
 
 		const savedPipeline = await this.pipelineRepository.save(pipeline);
@@ -258,5 +260,19 @@ export class PipelineService {
 		if (nextStep) {
 			await this.postToQueueService(nextStep);
 		}
+	}
+
+	async getPersonalPipelines(userId: number) {
+		return await this.pipelineRepository.find({
+			where: { user: { id: userId } },
+			relations: [
+				'pipelineCodes',
+				'pipelineCodes.version',
+				'pipelineCodes.version.input',
+				'pipelineCodes.version.output',
+				'user',
+				'user.profilePicture',
+			],
+		});
 	}
 }

@@ -5,9 +5,12 @@ import {
 	CreateDateColumn,
 	UpdateDateColumn,
 	OneToMany,
+	ManyToOne,
 } from 'typeorm';
 import { PipelineCode } from './pipeline_code.entities';
 import { Run } from './run.entities';
+import { User } from '../../users/users.entities';
+import { userToMinifiedUser } from '../../content/dto/UserFormatter';
 
 @Entity({ name: 'Pipelines' })
 export class Pipeline {
@@ -28,9 +31,24 @@ export class Pipeline {
 	@OneToMany(() => Run, run => run.pipeline)
 	runs: Run[];
 
+	@ManyToOne(() => User, user => user.pipelines)
+	user: User;
+
 	@CreateDateColumn({ type: 'timestamp' })
 	createdAt: Date;
 
 	@UpdateDateColumn({ type: 'timestamp' })
 	updatedAt: Date;
+
+	toJSON() {
+		return {
+			id: this.id,
+			title: this.title,
+			description: this.description,
+			pipelineCodes: this.pipelineCodes ?? [],
+			createdAt: this.createdAt,
+			updatedAt: this.updatedAt,
+			user: userToMinifiedUser(this.user),
+		};
+	}
 }

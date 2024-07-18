@@ -21,11 +21,24 @@ import { SignedInRequest } from '../../infrastructure/auth/strategies/jwt.strate
 export class PipelineController {
 	constructor(private readonly pipelineService: PipelineService) {}
 
+	@UseGuards(JwtAuthGuard)
+	@Get()
+	async getPersonalPipelines(
+		@Request() req: SignedInRequest
+	): Promise<Pipeline[]> {
+		return this.pipelineService.getPersonalPipelines(req.user.userId);
+	}
+
+	@UseGuards(JwtAuthGuard)
 	@Post()
 	async createPipeline(
+		@Request() req: SignedInRequest,
 		@Body() createPipelineDto: CreatePipelineDTO
 	): Promise<Pipeline> {
-		return this.pipelineService.createPipeline(createPipelineDto);
+		return this.pipelineService.createPipeline(
+			createPipelineDto,
+			req.user.userId
+		);
 	}
 
 	@UseGuards(JwtAuthGuard)

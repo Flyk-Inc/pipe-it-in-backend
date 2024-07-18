@@ -1,11 +1,11 @@
-import { User } from '../../users/users.entities';
+import { MinifiedUser, User } from '../../users/users.entities';
 
 export class TimelinePost {
 	id: number;
 	text: string;
 	createdAt: Date;
 	updatedAt: Date;
-	user: { firstName: string; lastName: string; username: string; id: number };
+	user: MinifiedUser;
 	comments: number;
 	likes: number;
 
@@ -26,6 +26,7 @@ export class TimelinePost {
 			firstName: user.firstName,
 			lastName: user.lastName,
 			username: user.username,
+			profilePicture: user.profilePicture?.id,
 			id: user.id,
 		};
 		this.comments = comments;

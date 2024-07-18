@@ -28,4 +28,11 @@ export class PipelineCode {
 
 	@UpdateDateColumn({ type: 'timestamp' })
 	updatedAt: Date;
+
+	toJSON() {
+		return {
+			version: this.version,
+			step: this.step,
+		};
+	}
 }

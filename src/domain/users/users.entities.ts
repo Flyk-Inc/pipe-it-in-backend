@@ -18,6 +18,15 @@ import { Like } from '../content/likes/likes.entities';
 import { Reaction } from '../content/comments/reactions/reactions.entities';
 import { Code } from '../pipelines/code.entities';
 import { FileEntity } from '../pipelines/code-runner/file.entities';
+import { Pipeline } from '../pipelines/code-runner/pipeline.entities';
+
+export interface MinifiedUser {
+	firstName: string;
+	lastName: string;
+	username: string;
+	id: number;
+	profilePicture: string;
+}
 
 @Entity({ name: 'Users' })
 export class User {
@@ -88,6 +97,9 @@ export class User {
 
 	@OneToMany(() => Code, code => code.author)
 	codes: Code[];
+
+	@OneToMany(() => Pipeline, pipeline => pipeline.user)
+	pipelines: Pipeline[];
 
 	@Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
 	updatedAt: Date;
