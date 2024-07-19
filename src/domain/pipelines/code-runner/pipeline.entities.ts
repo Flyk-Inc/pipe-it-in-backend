@@ -45,10 +45,13 @@ export class Pipeline {
 			id: this.id,
 			title: this.title,
 			description: this.description,
-			pipelineCodes: this.pipelineCodes ?? [],
+			pipelineCodes: this.pipelineCodes
+				? this.pipelineCodes.sort((a, b) => a.step - b.step)
+				: [],
 			createdAt: this.createdAt,
 			updatedAt: this.updatedAt,
-			user: userToMinifiedUser(this.user),
+			user: this.user ? userToMinifiedUser(this.user) : undefined,
+			runs: this.runs ?? [],
 		};
 	}
 }
