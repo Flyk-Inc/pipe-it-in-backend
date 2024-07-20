@@ -11,6 +11,7 @@ import { Role } from '../../../infrastructure/auth/roles.entities';
 import { Posts } from '../../content/posts.entities';
 import { UpdateUserProfileDto } from '../dto/updateUserDTO';
 import { PinPostDto } from '../dto/pinPostDTO';
+import { FollowRequest } from '../follow_requests.entities';
 
 @Injectable()
 export class UsersService {
@@ -20,7 +21,9 @@ export class UsersService {
 		@InjectRepository(Role)
 		private rolesRepository: Repository<Role>,
 		@InjectRepository(Posts)
-		private postsRepository: Repository<Posts>
+		private postsRepository: Repository<Posts>,
+		@InjectRepository(FollowRequest)
+		private followRequestRepository: Repository<FollowRequest>
 	) {}
 
 	async createUser(userToCreate: CreateUserDTO): Promise<User> {
@@ -53,6 +56,8 @@ export class UsersService {
 				'followers.follower',
 				'following',
 				'following.follower',
+				'receivedFollowRequests',
+				'receivedFollowRequests.follower',
 				'posts',
 			],
 		});
@@ -68,6 +73,13 @@ export class UsersService {
 		});
 		if (!user) {
 			throw new NotFoundException('User not found');
+		}
+
+		if (user.isPrivate && !updateUserProfileDto.isPrivate) {
+			await this.followRequestRepository.delete({
+				user: { id: userId },
+				isAccepted: false,
+			});
 		}
 
 		this.usersRepository.merge(user, updateUserProfileDto);
