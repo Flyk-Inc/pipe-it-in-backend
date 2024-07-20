@@ -5,7 +5,15 @@ export class TimelinePost {
 	text: string;
 	createdAt: Date;
 	updatedAt: Date;
-	user: { firstName: string; lastName: string; username: string; id: number };
+	user: {
+		firstName: string;
+		lastName: string;
+		username: string;
+		id: number;
+		profilePicture: {
+			id: string;
+		};
+	};
 	comments: number;
 	likes: number;
 
@@ -27,6 +35,9 @@ export class TimelinePost {
 			lastName: user.lastName,
 			username: user.username,
 			id: user.id,
+			profilePicture: user.profilePicture
+				? { id: user.profilePicture.id }
+				: undefined,
 		};
 		this.comments = comments;
 		this.likes = likes;
