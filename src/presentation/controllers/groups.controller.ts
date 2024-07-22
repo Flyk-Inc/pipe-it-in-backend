@@ -76,8 +76,14 @@ export class GroupController {
 
 	@UseGuards(JwtAuthGuard)
 	@Get()
-	async getUserGroups(@Request() req: SignedInRequest) {
+	async getCurrentUserGroups(@Request() req: SignedInRequest) {
 		const userId = req.user.userId;
+		return await this.groupService.getUserGroups(userId);
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@Get('user/:userId')
+	async getUserGroups(@Param('userId', ParseIntPipe) userId: number) {
 		return await this.groupService.getUserGroups(userId);
 	}
 

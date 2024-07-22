@@ -171,36 +171,29 @@ export class PostsService {
 			.leftJoinAndSelect('posts.user', 'user')
 			.leftJoinAndSelect('posts.comments', 'comments')
 			.leftJoinAndSelect('posts.likes', 'likes')
+			.leftJoinAndSelect('user.profilePicture', 'profilePicture')
 			.where(qb => {
 				const subQuery1 = qb
 					.subQuery()
 					.select('p.id')
 					.from(Posts, 'p')
-					.where('p.user_id = :userId', { userId })
+					.innerJoin(UserFollows, 'uf', 'uf.user.id = p.user.id')
+					.where('uf.follower.id = :userId', { userId })
 					.getQuery();
 
 				const subQuery2 = qb
 					.subQuery()
 					.select('p.id')
 					.from(Posts, 'p')
-					.innerJoin(
-						UserFollows,
-						'uf',
-						'uf.user_id = :userId AND uf.follower_id = p.user_id',
-						{ userId }
-					)
+					.innerJoin(GroupMember, 'gm', 'gm.group.id = p.groupId')
+					.where('gm.user.id = :userId', { userId })
 					.getQuery();
 
 				const subQuery3 = qb
 					.subQuery()
 					.select('p.id')
 					.from(Posts, 'p')
-					.innerJoin(
-						GroupMember,
-						'gm',
-						'gm.userId = :userId AND gm.groupId = p.group_id',
-						{ userId }
-					)
+					.where('p.user.id = :userId', { userId })
 					.getQuery();
 
 				let whereClause = `posts.id IN (${subQuery1} UNION ${subQuery2} UNION ${subQuery3})`;
@@ -219,7 +212,6 @@ export class PostsService {
 		const [posts, total] = await query.getManyAndCount();
 
 		const timelinePosts = posts.map(post => postToTimelinePost(post));
-
 		const nextCursor =
 			posts.length > 0 ? posts[posts.length - 1].createdAt : null;
 

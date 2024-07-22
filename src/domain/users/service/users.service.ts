@@ -10,8 +10,8 @@ import { CreateUserDTO } from '../dto/createUserDTO';
 import { Role } from '../../../infrastructure/auth/roles.entities';
 import { Posts } from '../../content/posts.entities';
 import { UpdateUserProfileDto } from '../dto/updateUserDTO';
-import { ToggleUserPrivacyDto } from '../dto/toggleUserPrivacyDto';
 import { PinPostDto } from '../dto/pinPostDTO';
+import { FollowRequest } from '../follow_requests.entities';
 
 @Injectable()
 export class UsersService {
@@ -21,7 +21,9 @@ export class UsersService {
 		@InjectRepository(Role)
 		private rolesRepository: Repository<Role>,
 		@InjectRepository(Posts)
-		private postsRepository: Repository<Posts>
+		private postsRepository: Repository<Posts>,
+		@InjectRepository(FollowRequest)
+		private followRequestRepository: Repository<FollowRequest>
 	) {}
 
 	async createUser(userToCreate: CreateUserDTO): Promise<User> {
@@ -44,29 +46,43 @@ export class UsersService {
 		});
 	}
 
+	async getUserById(id: number): Promise<User | null> {
+		return await this.usersRepository.findOne({
+			where: { id },
+			relations: [
+				'roles',
+				'profilePicture',
+				'followers',
+				'followers.follower',
+				'following',
+				'following.follower',
+				'receivedFollowRequests',
+				'receivedFollowRequests.follower',
+				'posts',
+			],
+		});
+	}
+
 	async updateUserProfile(
 		userId: number,
 		updateUserProfileDto: UpdateUserProfileDto
 	): Promise<User> {
-		const user = await this.usersRepository.findOne({ where: { id: userId } });
+		const user = await this.usersRepository.findOne({
+			where: { id: userId },
+			relations: ['roles', 'profilePicture', 'followers', 'following', 'posts'],
+		});
 		if (!user) {
 			throw new NotFoundException('User not found');
 		}
 
-		const updatedUser = Object.assign(user, updateUserProfileDto);
-		return this.usersRepository.save(updatedUser);
-	}
-
-	async toggleUserPrivacy(
-		userId: number,
-		toggleUserPrivacyDto: ToggleUserPrivacyDto
-	): Promise<User> {
-		const user = await this.usersRepository.findOne({ where: { id: userId } });
-		if (!user) {
-			throw new NotFoundException('User not found');
+		if (user.isPrivate && !updateUserProfileDto.isPrivate) {
+			await this.followRequestRepository.delete({
+				user: { id: userId },
+				isAccepted: false,
+			});
 		}
 
-		user.isPrivate = toggleUserPrivacyDto.isPrivate;
+		this.usersRepository.merge(user, updateUserProfileDto);
 		return this.usersRepository.save(user);
 	}
 

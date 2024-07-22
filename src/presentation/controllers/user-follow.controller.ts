@@ -28,7 +28,7 @@ export class UserFollowController {
 	async unfollowUser(@Request() req: SignedInRequest) {
 		await this.relationshipService.unfollowUser(
 			req.user.userId,
-			parseInt(req.params.id)
+			parseInt(req.params.userId)
 		);
 	}
 
