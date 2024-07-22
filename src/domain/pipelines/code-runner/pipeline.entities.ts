@@ -28,7 +28,7 @@ export class Pipeline {
 	})
 	pipelineCodes: PipelineCode[];
 
-	@OneToMany(() => Run, run => run.pipeline)
+	@OneToMany(() => Run, run => run.pipeline, { cascade: ['remove'] })
 	runs: Run[];
 
 	@ManyToOne(() => User, user => user.pipelines)

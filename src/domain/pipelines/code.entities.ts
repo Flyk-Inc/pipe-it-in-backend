@@ -53,18 +53,25 @@ export class Code {
 	@UpdateDateColumn({ type: 'timestamp' })
 	updatedAt: Date;
 
-	@OneToMany(() => Version, version => version.code)
+	@OneToMany(() => Version, version => version.code, { cascade: ['remove'] })
 	versions: Version[];
 
-	@OneToMany(() => PipelineRunStep, testResult => testResult.code)
+	@OneToMany(() => PipelineRunStep, testResult => testResult.code, {
+		cascade: ['remove'],
+	})
 	testRuns: PipelineRunStep[];
 
-	@OneToMany(() => InputDescription, inputDescription => inputDescription.code)
+	@OneToMany(
+		() => InputDescription,
+		inputDescription => inputDescription.code,
+		{ cascade: ['remove'] }
+	)
 	input: InputDescription[];
 
 	@OneToMany(
 		() => OutputDescription,
-		outputDescription => outputDescription.code
+		outputDescription => outputDescription.code,
+		{ cascade: ['remove'] }
 	)
 	output: OutputDescription[];
 

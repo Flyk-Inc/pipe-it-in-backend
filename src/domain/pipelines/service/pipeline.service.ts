@@ -4,7 +4,7 @@ import {
 	BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Pipeline } from '../code-runner/pipeline.entities';
 import { PipelineCode } from '../code-runner/pipeline_code.entities';
 import { Version } from '../version.entities';
@@ -38,13 +38,105 @@ export class PipelineService {
 		private runRepository: Repository<Run>,
 		@InjectRepository(PipelineRunStep)
 		private pipelineRunStepRepository: Repository<PipelineRunStep>,
-		private readonly rabbitMQService: RabbitMQService
+		private readonly rabbitMQService: RabbitMQService,
+		private dataSource: DataSource
 	) {}
 
 	async createPipeline(
 		createPipelineDto: CreatePipelineDTO,
 		userId: number
 	): Promise<Pipeline> {
+		const queryRunner = this.dataSource.createQueryRunner();
+
+		await queryRunner.connect();
+		await queryRunner.startTransaction();
+		try {
+			const pipeline = this.pipelineRepository.create({
+				title: createPipelineDto.title,
+				description: createPipelineDto.description,
+				pipelineCodes: [],
+				user: { id: userId },
+			});
+
+			const savedPipeline = await queryRunner.manager.save(pipeline);
+
+			if (createPipelineDto.pipelineCodes) {
+				const pipelineCodes = await Promise.all(
+					createPipelineDto.pipelineCodes.map(
+						async (pipelineCodeDto: CreatePipelineCodeDTO, index: number) => {
+							const version = await this.versionRepository.findOne({
+								where: { id: pipelineCodeDto.code_version_id },
+								relations: ['input', 'output'],
+							});
+
+							if (!version) {
+								throw new NotFoundException(
+									`Version with ID ${pipelineCodeDto.code_version_id} not found`
+								);
+							}
+
+							if (index > 0) {
+								const previousCodeVersion =
+									await this.versionRepository.findOne({
+										where: {
+											id: createPipelineDto.pipelineCodes[index - 1]
+												.code_version_id,
+										},
+										relations: ['output'],
+									});
+
+								if (!previousCodeVersion) {
+									throw new NotFoundException(
+										`Previous version with ID ${createPipelineDto.pipelineCodes[index - 1].code_version_id} not found`
+									);
+								}
+
+								const previousOutput = previousCodeVersion.output[0];
+								const currentInput = version.input[0];
+
+								if (currentInput && !previousOutput) {
+									throw new BadRequestException(
+										`Pipeline step ${index + 1} requires an input of type ${currentInput.fileType.extension} but the previous step does not produce any output`
+									);
+								}
+
+								if (
+									previousOutput &&
+									currentInput &&
+									previousOutput.fileType.extension !==
+										currentInput.fileType.extension
+								) {
+									throw new BadRequestException(
+										`Pipeline step ${index + 1} input type ${currentInput.fileType.extension} does not match the output type ${previousOutput.fileType.extension} of the previous step`
+									);
+								}
+							}
+
+							return this.pipelineCodeRepository.create({
+								version: { id: pipelineCodeDto.code_version_id },
+								step: pipelineCodeDto.step,
+								pipeline: savedPipeline,
+							});
+						}
+					)
+				);
+
+				await queryRunner.manager.save(pipelineCodes);
+				savedPipeline.pipelineCodes = pipelineCodes;
+			}
+
+			await queryRunner.commitTransaction();
+			return this.pipelineRepository.findOne({
+				where: { id: savedPipeline.id },
+				relations: ['pipelineCodes'],
+			});
+		} catch (err) {
+			await queryRunner.rollbackTransaction();
+			throw err;
+		} finally {
+			// you need to release a queryRunner which was manually instantiated
+			await queryRunner.release();
+		} /*
 		const pipeline = this.pipelineRepository.create({
 			title: createPipelineDto.title,
 			description: createPipelineDto.description,
@@ -121,7 +213,7 @@ export class PipelineService {
 		return this.pipelineRepository.findOne({
 			where: { id: savedPipeline.id },
 			relations: ['pipelineCodes'],
-		});
+		});*/
 	}
 
 	async runPipeline(
