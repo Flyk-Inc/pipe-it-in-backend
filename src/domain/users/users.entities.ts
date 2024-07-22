@@ -25,7 +25,7 @@ export interface MinifiedUser {
 	lastName: string;
 	username: string;
 	id: number;
-	profilePicture: string;
+	profilePicture: { id: string };
 }
 
 @Entity({ name: 'Users' })

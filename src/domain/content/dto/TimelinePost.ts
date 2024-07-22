@@ -26,8 +26,10 @@ export class TimelinePost {
 			firstName: user.firstName,
 			lastName: user.lastName,
 			username: user.username,
-			profilePicture: user.profilePicture?.id,
 			id: user.id,
+			profilePicture: user.profilePicture
+				? { id: user.profilePicture.id }
+				: undefined,
 		};
 		this.comments = comments;
 		this.likes = likes;

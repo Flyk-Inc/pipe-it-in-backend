@@ -6,6 +6,6 @@ export const userToMinifiedUser = (user: User): MinifiedUser => {
 		lastName: user.lastName,
 		username: user.username,
 		id: user.id,
-		profilePicture: user.profilePicture?.id,
+		profilePicture: { id: user.profilePicture?.id },
 	};
 };
