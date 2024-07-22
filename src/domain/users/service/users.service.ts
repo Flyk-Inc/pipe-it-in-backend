@@ -36,6 +36,7 @@ export class UsersService {
 		return await this.usersRepository.save({
 			...userToCreate,
 			roles: [userRole],
+			isActive: false,
 		});
 	}
 
@@ -124,5 +125,11 @@ export class UsersService {
 
 		user.pinnedPost = null;
 		return this.usersRepository.save(user);
+	}
+
+	async markEmailAsConfirmed(email: string) {
+		const user = await this.getUserByEmail(email);
+		user.isActive = true;
+		await this.usersRepository.save(user);
 	}
 }
