@@ -7,6 +7,7 @@ import {
 	ParseIntPipe,
 	Patch,
 	Post,
+	Query,
 	Req,
 	UploadedFile,
 	UseGuards,
@@ -64,6 +65,12 @@ export class CodeController {
 		@Req() req: SignedInRequest
 	): Promise<Code[]> {
 		return this.codeService.getCodesByUser(req.user.userId);
+	}
+
+	@Get('search')
+	@UseGuards(JwtAuthGuard)
+	async getPublicVersions(@Query('query') query: string): Promise<Code[]> {
+		return this.codeService.getPublicCodes(query);
 	}
 
 	@Post(':codeId/version')

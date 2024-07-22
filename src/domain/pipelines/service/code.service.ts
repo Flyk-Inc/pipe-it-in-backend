@@ -1,12 +1,13 @@
 import {
+	BadRequestException,
 	ForbiddenException,
 	Injectable,
 	NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Code } from '../code.entities';
+import { Code, CodeStatus } from '../code.entities';
 import { Version } from '../version.entities';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { User } from '../../users/users.entities';
 import { CreateCodeDTO } from '../dto/createCodeDTO';
 import { UpdateCodeDTO } from '../dto/updateCode.dto';
@@ -195,6 +196,16 @@ export class CodeService {
 		const code = await this.codeRepository.findOne({ where: { id: codeId } });
 		if (!code) {
 			throw new NotFoundException('Code not found');
+		}
+
+		const versionExists = await this.versionRepository.findOne({
+			where: { code, version: createVersionDto.version },
+		});
+
+		if (versionExists) {
+			throw new BadRequestException(
+				`Version ${createVersionDto.version} already exists for this code`
+			);
 		}
 
 		const version = this.versionRepository.create({
@@ -405,5 +416,46 @@ export class CodeService {
 			relations: { inputFile: true, outputFile: true },
 			order: { createdAt: 'DESC' },
 		});
+	}
+
+	async getPublicCodes(query: string): Promise<Code[]> {
+		const queryBuilder =
+			this.codeRepository.createQueryBuilder('codeRepository');
+
+		queryBuilder
+			.leftJoinAndSelect('codeRepository.author', 'author')
+			.leftJoinAndSelect('codeRepository.versions', 'versions')
+			.leftJoinAndSelect('versions.input', 'input')
+			.leftJoinAndSelect('input.fileType', 'inputFileType')
+			.leftJoinAndSelect('versions.output', 'output')
+			.leftJoinAndSelect('output.fileType', 'outputFileType')
+			.where('codeRepository.status = :status', { status: CodeStatus.active })
+			.andWhere('versions.id IS NOT NULL');
+
+		if (query) {
+			const lowerQuery = query.toLowerCase();
+			queryBuilder.andWhere(
+				new Brackets(qb => {
+					qb.where('LOWER(codeRepository.title) LIKE :query', {
+						query: `%${lowerQuery}%`,
+					})
+						.orWhere('LOWER(author.username) LIKE :query', {
+							query: `%${lowerQuery}%`,
+						})
+						.orWhere('LOWER(author.firstName) LIKE :query', {
+							query: `%${lowerQuery}%`,
+						})
+						.orWhere('LOWER(author.lastName) LIKE :query', {
+							query: `%${lowerQuery}%`,
+						})
+						.orWhere(
+							"LOWER(CONCAT(author.firstName, ' ', author.lastName)) LIKE :query",
+							{ query: `%${lowerQuery}%` }
+						);
+				})
+			);
+		}
+
+		return await queryBuilder.getMany();
 	}
 }
