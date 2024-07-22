@@ -25,4 +25,14 @@ export class Run {
 
 	@UpdateDateColumn({ type: 'timestamp' })
 	updatedAt: Date;
+
+	toJSON() {
+		return {
+			id: this.id,
+			pipeline: this.pipeline,
+			runReport: this.pipelineRunSteps.sort((a, b) => a.step - b.step),
+			createdAt: this.createdAt,
+			updatedAt: this.updatedAt,
+		};
+	}
 }

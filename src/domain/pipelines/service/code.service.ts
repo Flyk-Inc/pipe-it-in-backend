@@ -184,6 +184,7 @@ export class CodeService {
 				author: true,
 				versions: { input: { fileType: true }, output: { fileType: true } },
 			},
+			order: { createdAt: 'DESC' },
 		});
 	}
 
@@ -370,6 +371,7 @@ export class CodeService {
 		return this.versionRepository.find({
 			where: { code: { id: codeId } },
 			relations: { input: { fileType: true }, output: { fileType: true } },
+			order: { createdAt: 'DESC' },
 		});
 	}
 
@@ -401,6 +403,7 @@ export class CodeService {
 		return await this.testRunRepository.find({
 			where: { code: { id: codeId }, user: { id: userId } },
 			relations: { inputFile: true, outputFile: true },
+			order: { createdAt: 'DESC' },
 		});
 	}
 }

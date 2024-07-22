@@ -1,19 +1,11 @@
-import { User } from '../../users/users.entities';
+import { MinifiedUser, User } from '../../users/users.entities';
 
 export class TimelinePost {
 	id: number;
 	text: string;
 	createdAt: Date;
 	updatedAt: Date;
-	user: {
-		firstName: string;
-		lastName: string;
-		username: string;
-		id: number;
-		profilePicture: {
-			id: string;
-		};
-	};
+	user: MinifiedUser;
 	comments: number;
 	likes: number;
 

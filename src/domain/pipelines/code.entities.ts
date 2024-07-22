@@ -12,6 +12,7 @@ import { Version } from './version.entities';
 import { OutputDescription } from './output_description.entities';
 import { InputDescription } from './input_description.entities';
 import { PipelineRunStep } from './code-runner/pipeline_run_step.entities';
+import { userToMinifiedUser } from '../content/dto/UserFormatter';
 
 @Entity({ name: 'Codes' })
 export class Code {
@@ -72,12 +73,7 @@ export class Code {
 			id: this.id,
 			title: this.title,
 			description: this.description,
-			author: {
-				firstName: this.author.firstName,
-				lastName: this.author.lastName,
-				username: this.author.username,
-				id: this.author.id,
-			},
+			author: userToMinifiedUser(this.author),
 			versionDraft: {
 				title: this.versionTitleDraft,
 				version: this.versionVersionDraft,
@@ -96,7 +92,7 @@ export class Code {
 			testRuns: this.testRuns
 				? this.testRuns.sort(
 						(a, b) =>
-							new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+							new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
 					)
 				: [],
 			status: this.status,

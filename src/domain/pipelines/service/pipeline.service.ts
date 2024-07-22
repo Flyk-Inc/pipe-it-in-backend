@@ -42,12 +42,14 @@ export class PipelineService {
 	) {}
 
 	async createPipeline(
-		createPipelineDto: CreatePipelineDTO
+		createPipelineDto: CreatePipelineDTO,
+		userId: number
 	): Promise<Pipeline> {
 		const pipeline = this.pipelineRepository.create({
 			title: createPipelineDto.title,
 			description: createPipelineDto.description,
 			pipelineCodes: [],
+			user: { id: userId },
 		});
 
 		const savedPipeline = await this.pipelineRepository.save(pipeline);
@@ -122,7 +124,11 @@ export class PipelineService {
 		});
 	}
 
-	async runPipeline(pipelineId: number, userId: number): Promise<Run> {
+	async runPipeline(
+		pipelineId: number,
+		userId: number,
+		fileId: string | undefined
+	): Promise<Run> {
 		const pipeline = await this.pipelineRepository.findOne({
 			where: { id: pipelineId },
 			relations: [
@@ -137,13 +143,20 @@ export class PipelineService {
 			throw new NotFoundException(`Pipeline with ID ${pipelineId} not found`);
 		}
 
+		// check if the pipeline needs input
+		if (
+			pipeline.pipelineCodes[0].version.input.length > 0 &&
+			fileId === undefined
+		) {
+			throw new BadRequestException('Pipeline requires an input file');
+		}
+
 		const run = this.runRepository.create({
 			pipeline,
 			pipelineRunSteps: [],
 		});
 
 		const savedRun = await this.runRepository.save(run);
-
 		const pipelineRunSteps = await Promise.all(
 			pipeline.pipelineCodes.map(pipelineCode => {
 				return this.pipelineRunStepRepository.create({
@@ -158,6 +171,12 @@ export class PipelineService {
 				});
 			})
 		);
+		if (fileId !== undefined) {
+			pipelineRunSteps.sort((a, b) => {
+				return a.step - b.step;
+			});
+			pipelineRunSteps[0].inputFile = { id: fileId } as any;
+		}
 
 		savedRun.pipelineRunSteps =
 			await this.pipelineRunStepRepository.save(pipelineRunSteps);
@@ -220,9 +239,9 @@ export class PipelineService {
 		stepId: number,
 		endPipelineStepDto: EndPipelineStepDTO
 	) {
-		const codeRunStep = await this.pipelineRunStepRepository.findOne({
+		let codeRunStep = await this.pipelineRunStepRepository.findOne({
 			where: { id: stepId },
-			relations: ['run', 'inputFile'],
+			relations: ['run', 'inputFile', 'outputFile'],
 		});
 
 		if (!codeRunStep) {
@@ -235,10 +254,16 @@ export class PipelineService {
 		codeRunStep.stdout = endPipelineStepDto.stdout;
 
 		if (endPipelineStepDto.outputFileId) {
-			codeRunStep.outputFile = { id: endPipelineStepDto.outputFileId } as any;
+			codeRunStep.outputFile = {
+				id: endPipelineStepDto.outputFileId.toString(),
+			} as any;
 		}
 
 		await this.pipelineRunStepRepository.save(codeRunStep);
+		codeRunStep = await this.pipelineRunStepRepository.findOne({
+			where: { id: stepId },
+			relations: ['run', 'inputFile', 'outputFile'],
+		});
 
 		if (endPipelineStepDto.isError) {
 			return;
@@ -256,7 +281,54 @@ export class PipelineService {
 		});
 
 		if (nextStep) {
+			if (nextStep.needsInput) {
+				if (codeRunStep.outputFile === null) {
+					nextStep.error = true;
+					nextStep.stderr =
+						'Output file is required and previous step did not produce any output';
+					await this.pipelineRunStepRepository.save(nextStep);
+					throw new BadRequestException('Output file is required');
+				}
+				nextStep.inputFile = {
+					id: codeRunStep.outputFile.id,
+				} as any;
+				await this.pipelineRunStepRepository.save(nextStep);
+			}
 			await this.postToQueueService(nextStep);
 		}
+	}
+
+	async getPersonalPipelines(userId: number) {
+		return await this.pipelineRepository.find({
+			where: { user: { id: userId } },
+			relations: [
+				'pipelineCodes',
+				'pipelineCodes.version',
+				'pipelineCodes.version.input',
+				'pipelineCodes.version.output',
+				'user',
+				'user.profilePicture',
+			],
+			order: { createdAt: 'DESC' },
+		});
+	}
+
+	getPipelineById(pipelineId: number, userId: number) {
+		return this.pipelineRepository.findOne({
+			where: { id: pipelineId, user: { id: userId } },
+			relations: [
+				'pipelineCodes',
+				'pipelineCodes.version',
+				'pipelineCodes.version.input',
+				'pipelineCodes.version.output',
+				'user',
+				'user.profilePicture',
+				'runs',
+				'runs.pipelineRunSteps',
+				'runs.pipelineRunSteps.inputFile',
+				'runs.pipelineRunSteps.outputFile',
+			],
+			order: { createdAt: 'DESC' },
+		});
 	}
 }
