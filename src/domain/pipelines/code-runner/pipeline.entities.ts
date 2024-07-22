@@ -51,7 +51,12 @@ export class Pipeline {
 			createdAt: this.createdAt,
 			updatedAt: this.updatedAt,
 			user: this.user ? userToMinifiedUser(this.user) : undefined,
-			runs: this.runs ?? [],
+			runs: this.runs
+				? this.runs.sort(
+						(a, b) =>
+							new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+					)
+				: [],
 		};
 	}
 }
