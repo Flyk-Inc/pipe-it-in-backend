@@ -15,7 +15,7 @@ import { AuthService } from '../../infrastructure/auth/auth.service';
 import { SignedInRequest } from '../../infrastructure/auth/strategies/jwt.strategy';
 import { CreateUserDTO } from '../../domain/users/dto/createUserDTO';
 import { User } from '../../domain/users/users.entities';
-import { EmailConfirmationService } from '../../email-confirmation-service/email-confirmation.service';
+import { EmailConfirmationService } from '../../infrastructure/auth/email-confirmation.service';
 import * as process from 'node:process';
 
 @Controller('auth')

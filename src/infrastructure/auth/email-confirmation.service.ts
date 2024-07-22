@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { MailerService } from '../mailer/mailer.service';
-import { UsersService } from '../domain/users/service/users.service';
+import { MailerService } from '../messaging/mailer.service';
+import { UsersService } from '../../domain/users/service/users.service';
 
 export interface VerificationTokenPayload {
 	email: string;

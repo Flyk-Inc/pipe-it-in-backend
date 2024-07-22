@@ -52,8 +52,8 @@ import { ObjectStorageModule } from './infrastructure/object-storage/object-stor
 import { FileService } from './domain/pipelines/code-runner/file.service';
 import { FileEntity } from './domain/pipelines/code-runner/file.entities';
 import { FileController } from './presentation/controllers/files.controller';
-import { MailerService } from './mailer/mailer.service';
-import { EmailConfirmationService } from './email-confirmation-service/email-confirmation.service';
+import { MailerService } from './infrastructure/messaging/mailer.service';
+import { EmailConfirmationService } from './infrastructure/auth/email-confirmation.service';
 
 @Module({
 	imports: [
