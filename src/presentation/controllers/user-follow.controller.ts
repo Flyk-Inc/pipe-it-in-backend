@@ -45,18 +45,19 @@ export class UserFollowController {
 		);
 	}
 
-	@Patch('/:requestId/follow-request')
+	@Patch('/:followerId/follow-request')
 	async acceptFollowRequest(@Request() req: SignedInRequest) {
 		await this.relationshipService.acceptFollowRequest(
-			parseInt(req.params.requestId),
+			parseInt(req.params.followerId),
 			req.user.userId
 		);
 	}
 
-	@Delete('/:requestId/follow-request')
+	@Delete('/:followerId/follow-request')
 	async deleteFollowRequest(@Request() req: SignedInRequest) {
 		await this.relationshipService.rejectFollowRequest(
-			parseInt(req.params.requestId)
+			parseInt(req.params.followerId),
+			req.user.userId
 		);
 	}
 
@@ -68,5 +69,13 @@ export class UserFollowController {
 	@Get('/:userId/following')
 	async getFollowing(@Request() req: SignedInRequest) {
 		return this.relationshipService.getFollowing(parseInt(req.params.userId));
+	}
+
+	@Delete('/followers/:followerId')
+	async removeFollower(@Request() req: SignedInRequest) {
+		return this.relationshipService.removeFollower(
+			req.user.userId,
+			parseInt(req.params.followerId)
+		);
 	}
 }

@@ -169,12 +169,12 @@ export class RelationshipService {
 
 	/**
 	 * Accepts a follow request
-	 * @param requestId ID of the follow request
+	 * @param followerId ID of the follower
 	 * @param userId User ID of the user accepting the request
 	 */
-	async acceptFollowRequest(requestId: number, userId: number): Promise<void> {
+	async acceptFollowRequest(followerId: number, userId: number): Promise<void> {
 		const request = await this.followRequestRepository.findOne({
-			where: { id: requestId },
+			where: { follower: { id: followerId }, user: { id: userId } },
 			relations: ['follower', 'user'],
 		});
 		if (!request) {
@@ -206,16 +206,17 @@ export class RelationshipService {
 		await this.followRequestRepository.update(request.id, { isAccepted: true });
 	}
 
-	async rejectFollowRequest(requestId: number): Promise<void> {
-		const request = await this.followRequestRepository.findOneBy({
-			id: requestId,
+	async rejectFollowRequest(followerId: number, userId: number): Promise<void> {
+		const request = await this.followRequestRepository.findOne({
+			where: { follower: { id: followerId }, user: { id: userId } },
+			relations: ['follower', 'user'],
 		});
 
 		if (!request) {
 			throw new NotFoundException('No follow request');
 		}
 
-		const deleteResult = await this.followRequestRepository.delete(requestId);
+		const deleteResult = await this.followRequestRepository.delete(request.id);
 
 		if (deleteResult.affected === 0) {
 			throw new Error('Failed to delete follow request');
@@ -227,5 +228,38 @@ export class RelationshipService {
 			where: { user: { id: userId }, isAccepted: false },
 			relations: ['follower'],
 		});
+	}
+
+	async removeFollower(userId: number, followerId: number): Promise<void> {
+		const [user, follower] = await Promise.all([
+			this.userRepository.findOne({ where: { id: userId } }),
+			this.userRepository.findOne({ where: { id: followerId } }),
+		]);
+
+		if (!user) {
+			throw new NotFoundException("User doesn't exist");
+		}
+		if (!follower) {
+			throw new NotFoundException("Follower doesn't exist");
+		}
+
+		const existingFollow = await this.userFollowsRepository.findOne({
+			where: {
+				user: { id: userId },
+				follower: { id: followerId },
+			},
+		});
+
+		if (!existingFollow) {
+			throw new BadRequestException('Follower not found');
+		}
+
+		const deleteResult = await this.userFollowsRepository.delete(
+			existingFollow.id
+		);
+
+		if (deleteResult.affected === 0) {
+			throw new Error('Failed to remove follower');
+		}
 	}
 }
