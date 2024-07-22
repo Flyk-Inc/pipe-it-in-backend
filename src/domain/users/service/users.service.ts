@@ -42,7 +42,17 @@ export class UsersService {
 	async getUserByEmail(email: string): Promise<User | null> {
 		return await this.usersRepository.findOne({
 			where: { email },
-			relations: ['roles', 'profilePicture', 'followers', 'following', 'posts'],
+			relations: [
+				'roles',
+				'profilePicture',
+				'followers',
+				'followers.follower.profilePicture',
+				'following',
+				'posts',
+				'receivedFollowRequests',
+				'receivedFollowRequests.follower',
+				'receivedFollowRequests.follower.profilePicture',
+			],
 		});
 	}
 
