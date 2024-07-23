@@ -17,6 +17,7 @@ import { FileTypes } from '../file_type.entities';
 import { CreateVersionDTO } from '../dto/create-version.dto';
 import { UpdateVersionDTO } from '../dto/update-version.dto';
 import { PipelineRunStep } from '../code-runner/pipeline_run_step.entities';
+import { UserFollows } from '../../users/user_follows.entities';
 
 @Injectable()
 export class CodeService {
@@ -182,7 +183,7 @@ export class CodeService {
 		return this.codeRepository.find({
 			where: { author: { id: userId } },
 			relations: {
-				author: true,
+				author: { profilePicture: true },
 				versions: { input: { fileType: true }, output: { fileType: true } },
 			},
 			order: { createdAt: 'DESC' },
@@ -455,5 +456,39 @@ export class CodeService {
 		}
 
 		return await queryBuilder.getMany();
+	}
+
+	async getRelatedCodesByUser(userId: number) {
+		const query = this.codeRepository
+			.createQueryBuilder('codes')
+			.leftJoinAndSelect('codes.author', 'user')
+			.leftJoinAndSelect('codes.versions', 'version')
+			.leftJoinAndSelect('version.code', 'code')
+			.leftJoinAndSelect('code.author', 'author')
+			.leftJoinAndSelect('user.profilePicture', 'profilePicture')
+			.where(qb => {
+				const subQuery1 = qb
+					.subQuery()
+					.select('c.id')
+					.from(Code, 'c')
+					.innerJoin(UserFollows, 'uf', 'uf.user.id = c.author.id')
+					.where('uf.follower.id = :userId', { userId })
+					.andWhere('c.status = :status', { status: CodeStatus.active })
+					.getQuery();
+
+				const subQuery3 = qb
+					.subQuery()
+					.select('c.id')
+					.from(Code, 'c')
+					.where('c.author.id = :userId', { userId })
+					.getQuery();
+
+				return `codes.id IN (${subQuery1} UNION ${subQuery3})`;
+			})
+			.orderBy('codes.createdAt', 'DESC');
+
+		const [codes] = await query.getManyAndCount();
+
+		return codes;
 	}
 }
