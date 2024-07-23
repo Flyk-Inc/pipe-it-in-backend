@@ -14,6 +14,7 @@ import { User } from '../users/users.entities';
 import { Comment } from './comments/comments.entities';
 import { Like } from './likes/likes.entities';
 import { Tag } from './tags/tags.entities';
+import { Version } from '../pipelines/version.entities';
 
 @Entity('posts')
 export class Posts {
@@ -23,6 +24,10 @@ export class Posts {
 	@ManyToOne(() => User, user => user.posts, { eager: true })
 	@JoinColumn({ name: 'user_id' })
 	user: User;
+
+	@ManyToOne(() => Version, version => version.posts, { eager: true })
+	@JoinColumn({ name: 'version_id' })
+	version: Version;
 
 	@Column({ type: 'text' })
 	text: string;

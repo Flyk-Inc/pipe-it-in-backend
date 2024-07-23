@@ -11,6 +11,7 @@ import { Code } from './code.entities';
 import { PipelineCode } from './code-runner/pipeline_code.entities';
 import { InputDescription } from './input_description.entities';
 import { OutputDescription } from './output_description.entities';
+import { Posts } from '../content/posts.entities';
 
 @Entity({ name: 'Versions' })
 export class Version {
@@ -49,6 +50,11 @@ export class Version {
 	)
 	output: OutputDescription[];
 
+	@OneToMany(() => Posts, post => post.version, {
+		eager: false,
+	})
+	posts: Posts[];
+
 	@CreateDateColumn({ type: 'timestamp' })
 	createdAt: Date;
 
@@ -65,6 +71,7 @@ export class Version {
 			id: this.id,
 			title: this.title,
 			version: this.version,
+			code: this.code ?? undefined,
 			description: this.description,
 			status: this.status,
 			codeContent: this.codeContent,
