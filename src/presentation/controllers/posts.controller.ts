@@ -44,6 +44,12 @@ export class PostsController {
 		);
 	}
 
+	@Get('/details/:postId')
+	async getPost(@Param('postId', ParseIntPipe) postId: number) {
+		console.log('hey');
+		return await this.postsService.getPostById(postId);
+	}
+
 	@Post()
 	async createPost(
 		@Body() post: CreatePostDto,
