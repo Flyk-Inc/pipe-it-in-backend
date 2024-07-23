@@ -49,6 +49,7 @@ export class PostsService {
 		const { id } = await this.postsRepository.save({
 			...post,
 			user: { id: creatorId },
+			version: post.versionId !== undefined ? { id: post.versionId } : null,
 		});
 		const createdPost = await this.postsRepository.findOne({
 			where: { id },
@@ -181,6 +182,9 @@ export class PostsService {
 			.createQueryBuilder('posts')
 			.leftJoinAndSelect('posts.user', 'user')
 			.leftJoinAndSelect('posts.comments', 'comments')
+			.leftJoinAndSelect('posts.version', 'version')
+			.leftJoinAndSelect('version.code', 'code') // Include the nested relation
+			.leftJoinAndSelect('code.author', 'author') // Include the nested relation
 			.leftJoinAndSelect('posts.likes', 'likes')
 			.leftJoinAndSelect('user.profilePicture', 'profilePicture')
 			.where(qb => {

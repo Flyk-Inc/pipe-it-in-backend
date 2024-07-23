@@ -80,7 +80,7 @@ export class Code {
 			id: this.id,
 			title: this.title,
 			description: this.description,
-			author: userToMinifiedUser(this.author),
+			author: this.author ? userToMinifiedUser(this.author) : undefined,
 			versionDraft: {
 				title: this.versionTitleDraft,
 				version: this.versionVersionDraft,

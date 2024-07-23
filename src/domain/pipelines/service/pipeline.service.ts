@@ -22,6 +22,7 @@ import { RabbitMQService } from '../../../infrastructure/messaging/rabbitmq.serv
 import * as process from 'node:process';
 import { RunTestCodeDTO } from '../dto/run_test_code.dto';
 import { Code } from '../code.entities';
+import { UpdatePipelineDTO } from '../dto/update_pipeline.dto';
 
 @Injectable()
 export class PipelineService {
@@ -422,5 +423,95 @@ export class PipelineService {
 			],
 			order: { createdAt: 'DESC' },
 		});
+	}
+
+	async updatePipeline(
+		pipelineId: number,
+		updatePipelineDto: UpdatePipelineDTO,
+		userId: number
+	): Promise<Pipeline> {
+		const queryRunner = this.dataSource.createQueryRunner();
+
+		await queryRunner.connect();
+		await queryRunner.startTransaction();
+
+		try {
+			const pipeline = await this.pipelineRepository.findOne({
+				where: { id: pipelineId, user: { id: userId } },
+				relations: [
+					'pipelineCodes',
+					'pipelineCodes.version',
+					'pipelineCodes.version.input',
+					'pipelineCodes.version.output',
+					'user',
+					'user.profilePicture',
+					'runs',
+					'runs.pipelineRunSteps',
+					'runs.pipelineRunSteps.inputFile',
+					'runs.pipelineRunSteps.outputFile',
+				],
+			});
+
+			if (!pipeline) {
+				throw new NotFoundException(`Pipeline with ID ${pipelineId} not found`);
+			}
+
+			// Update main pipeline properties
+			pipeline.title = updatePipelineDto.title;
+			pipeline.description = updatePipelineDto.description;
+
+			await queryRunner.manager.save(pipeline);
+
+			if (
+				updatePipelineDto.pipelineCodes &&
+				updatePipelineDto.pipelineCodes.length > 0
+			) {
+				await queryRunner.manager.remove(pipeline.pipelineCodes);
+
+				for (const pipelineCodeDto of updatePipelineDto.pipelineCodes) {
+					const version = await this.versionRepository.findOne({
+						where: { id: pipelineCodeDto.code_version_id },
+						relations: ['input', 'output'],
+					});
+
+					if (!version) {
+						throw new NotFoundException(
+							`Version with ID ${pipelineCodeDto.code_version_id} not found`
+						);
+					}
+
+					const newPipelineCode = this.pipelineCodeRepository.create({
+						version,
+						step: pipelineCodeDto.step,
+						pipeline,
+					});
+
+					await queryRunner.manager.save(newPipelineCode);
+				}
+			}
+
+			await queryRunner.commitTransaction();
+
+			return this.pipelineRepository.findOne({
+				where: { id: pipelineId },
+				relations: [
+					'pipelineCodes',
+					'pipelineCodes.version',
+					'pipelineCodes.version.input',
+					'pipelineCodes.version.output',
+					'user',
+					'user.profilePicture',
+					'runs',
+					'runs.pipelineRunSteps',
+					'runs.pipelineRunSteps.inputFile',
+					'runs.pipelineRunSteps.outputFile',
+				],
+			});
+		} catch (err) {
+			await queryRunner.rollbackTransaction();
+			throw err;
+		} finally {
+			await queryRunner.release();
+		}
 	}
 }

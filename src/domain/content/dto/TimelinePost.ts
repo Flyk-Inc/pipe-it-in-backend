@@ -1,4 +1,5 @@
 import { MinifiedUser, User } from '../../users/users.entities';
+import { Version } from '../../pipelines/version.entities';
 
 export class TimelinePost {
 	id: number;
@@ -8,6 +9,7 @@ export class TimelinePost {
 	user: MinifiedUser;
 	comments: number;
 	likes: number;
+	version?: Version;
 
 	constructor(
 		id: number,
@@ -16,7 +18,8 @@ export class TimelinePost {
 		updatedAt: Date,
 		user: User,
 		comments: number,
-		likes: number
+		likes: number,
+		version: Version = undefined
 	) {
 		this.id = id;
 		this.text = text;
@@ -33,5 +36,6 @@ export class TimelinePost {
 		};
 		this.comments = comments;
 		this.likes = likes;
+		this.version = version;
 	}
 }

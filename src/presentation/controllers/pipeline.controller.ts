@@ -22,6 +22,7 @@ import { SignedInRequest } from '../../infrastructure/auth/strategies/jwt.strate
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ObjectStorageService } from '../../infrastructure/object-storage/object-storage.service';
 import { FileService } from '../../domain/pipelines/code-runner/file.service';
+import { UpdatePipelineDTO } from '../../domain/pipelines/dto/update_pipeline.dto';
 
 @Controller('pipeline')
 export class PipelineController {
@@ -56,6 +57,20 @@ export class PipelineController {
 	): Promise<Pipeline> {
 		return this.pipelineService.createPipeline(
 			createPipelineDto,
+			req.user.userId
+		);
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@Patch(':pipelineId')
+	async updatePipeline(
+		@Request() req: SignedInRequest,
+		@Param('pipelineId', ParseIntPipe) pipelineId: number,
+		@Body() updatePipelineDto: UpdatePipelineDTO
+	): Promise<Pipeline> {
+		return this.pipelineService.updatePipeline(
+			pipelineId,
+			updatePipelineDto,
 			req.user.userId
 		);
 	}

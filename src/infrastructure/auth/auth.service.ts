@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../../domain/users/service/users.service';
 import { createHash } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
@@ -13,13 +13,13 @@ export class AuthService {
 
 	async validateUser(email: string, password: string) {
 		const user = await this.usersService.getUserByEmail(email);
-		if (
-			user &&
-			user.isActive &&
-			user.password === this.hashPassword(password)
-		) {
-			const { password, ...result } = user;
-			return result;
+		if (user && user.password === this.hashPassword(password)) {
+			if (user.isActive) {
+				const { password, ...result } = user;
+				return result;
+			} else {
+				throw new UnauthorizedException('user.not.activated');
+			}
 		}
 		return null;
 	}

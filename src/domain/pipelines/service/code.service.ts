@@ -199,13 +199,11 @@ export class CodeService {
 		}
 
 		const versionExists = await this.versionRepository.findOne({
-			where: { code, version: createVersionDto.version },
+			where: { code: { id: codeId }, version: createVersionDto.version },
 		});
 
 		if (versionExists) {
-			throw new BadRequestException(
-				`Version ${createVersionDto.version} already exists for this code`
-			);
+			throw new BadRequestException(`code.version.already.exists`);
 		}
 
 		const version = this.versionRepository.create({
