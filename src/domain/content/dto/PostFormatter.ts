@@ -9,6 +9,7 @@ export const postToTimelinePost = (post: Posts): TimelinePost => {
 		post.updatedAt,
 		post.user,
 		post.comments.length,
-		post.likes.length
+		post.likes.length,
+		post.version
 	);
 };

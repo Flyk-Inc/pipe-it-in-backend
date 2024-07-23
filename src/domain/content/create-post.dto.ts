@@ -8,4 +8,8 @@ export class CreatePostDto {
 	@IsInt()
 	@IsOptional()
 	groupId: number;
+
+	@IsInt()
+	@IsOptional()
+	versionId?: number;
 }
