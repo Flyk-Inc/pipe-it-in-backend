@@ -118,32 +118,35 @@ export class CommentService {
 			.createQueryBuilder('comment')
 			.leftJoinAndSelect('comment.user', 'user')
 			.leftJoinAndSelect('comment.parent', 'commentParent')
+			.leftJoinAndSelect('comment.reactions', 'commentReactions')
+			.leftJoinAndSelect('commentReactions.user', 'commentReactionsUser')
 			.leftJoinAndSelect('user.profilePicture', 'userProfilePicture')
 			.leftJoinAndSelect('comment.replies', 'replies')
 			.leftJoinAndSelect('replies.user', 'repliesUser')
 			.leftJoinAndSelect('replies.reactions', 'repliesReactions')
+			.leftJoinAndSelect('repliesReactions.user', 'reactionsUser')
 			.leftJoinAndSelect(
 				'repliesUser.profilePicture',
 				'repliesUserProfilePicture'
 			)
-			.leftJoinAndSelect('comment.reactions', 'reactions')
-			.addSelect('COUNT(reactions.id) as reactionCount')
+			.addSelect('COUNT(commentReactions.id) as reactionCount')
 			.addSelect(
-				'SUM(CASE WHEN reactions.isLike = true THEN 1 ELSE 0 END) as likeCount'
+				'SUM(CASE WHEN commentReactions.isLike = true THEN 1 ELSE 0 END) as likeCount'
 			)
 			.where('comment.post.id = :postId', { postId })
 			.groupBy('comment.id')
 			.addGroupBy('user.id')
 			.addGroupBy('commentParent.id')
+			.addGroupBy('commentReactions.id')
+			.addGroupBy('commentReactionsUser.id')
 			.addGroupBy('userProfilePicture.id')
 			.addGroupBy('replies.id')
 			.addGroupBy('repliesUser.id')
 			.addGroupBy('repliesReactions.id')
+			.addGroupBy('reactionsUser.id')
 			.addGroupBy('repliesUserProfilePicture.id')
 			.orderBy('likeCount', 'DESC')
 			.addOrderBy('comment.createdAt', 'DESC');
-
-		query.addGroupBy('reactions.id');
 
 		const comments = await query.getRawAndEntities();
 		return comments.entities;
