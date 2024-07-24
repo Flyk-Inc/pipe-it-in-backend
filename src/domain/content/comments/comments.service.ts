@@ -117,9 +117,11 @@ export class CommentService {
 		const query = this.commentRepository
 			.createQueryBuilder('comment')
 			.leftJoinAndSelect('comment.user', 'user')
+			.leftJoinAndSelect('comment.parent', 'commentParent')
 			.leftJoinAndSelect('user.profilePicture', 'userProfilePicture')
 			.leftJoinAndSelect('comment.replies', 'replies')
 			.leftJoinAndSelect('replies.user', 'repliesUser')
+			.leftJoinAndSelect('replies.reactions', 'repliesReactions')
 			.leftJoinAndSelect(
 				'repliesUser.profilePicture',
 				'repliesUserProfilePicture'
@@ -132,9 +134,11 @@ export class CommentService {
 			.where('comment.post.id = :postId', { postId })
 			.groupBy('comment.id')
 			.addGroupBy('user.id')
+			.addGroupBy('commentParent.id')
 			.addGroupBy('userProfilePicture.id')
 			.addGroupBy('replies.id')
 			.addGroupBy('repliesUser.id')
+			.addGroupBy('repliesReactions.id')
 			.addGroupBy('repliesUserProfilePicture.id')
 			.orderBy('likeCount', 'DESC')
 			.addOrderBy('comment.createdAt', 'DESC');
