@@ -4,8 +4,10 @@ import {
 	IsArray,
 	ValidateNested,
 	IsOptional,
+	IsEnum,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { CodeStatus } from '../code.entities';
 
 export class UpdatePipelineDTO {
 	@IsOptional()
@@ -21,6 +23,10 @@ export class UpdatePipelineDTO {
 	@ValidateNested({ each: true })
 	@Type(() => CreatePipelineCodeDTO)
 	pipelineCodes: CreatePipelineCodeDTO[];
+
+	@IsOptional()
+	@IsEnum(CodeStatus)
+	status: CodeStatus;
 }
 
 export class CreatePipelineCodeDTO {

@@ -407,8 +407,8 @@ export class PipelineService {
 		});
 	}
 
-	getPipelineById(pipelineId: number, userId: number) {
-		return this.pipelineRepository.findOne({
+	async getPipelineById(pipelineId: number, userId: number) {
+		const pipeline = await this.pipelineRepository.findOne({
 			where: [
 				{ id: pipelineId, user: { id: userId } },
 				{ id: pipelineId, status: CodeStatus.active },
@@ -427,6 +427,12 @@ export class PipelineService {
 			],
 			order: { createdAt: 'DESC' },
 		});
+
+		if (!pipeline) {
+			throw new NotFoundException(`Pipeline with ID ${pipelineId} not found`);
+		}
+
+		return pipeline;
 	}
 
 	async updatePipeline(
@@ -461,8 +467,16 @@ export class PipelineService {
 			}
 
 			// Update main pipeline properties
-			pipeline.title = updatePipelineDto.title;
-			pipeline.description = updatePipelineDto.description;
+			if (updatePipelineDto.title) {
+				pipeline.title = updatePipelineDto.title;
+			}
+			if (updatePipelineDto.description) {
+				pipeline.description = updatePipelineDto.description;
+			}
+
+			if (updatePipelineDto.status) {
+				pipeline.status = updatePipelineDto.status;
+			}
 
 			await queryRunner.manager.save(pipeline);
 
