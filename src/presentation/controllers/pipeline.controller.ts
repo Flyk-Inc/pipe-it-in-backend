@@ -41,6 +41,14 @@ export class PipelineController {
 	}
 
 	@UseGuards(JwtAuthGuard)
+	@Get('timeline')
+	async getAllRelatedPipelines(
+		@Request() req: SignedInRequest
+	): Promise<Pipeline[]> {
+		return this.pipelineService.getAllRelatedPipelines(req.user.userId);
+	}
+
+	@UseGuards(JwtAuthGuard)
 	@Get(':pipelineId')
 	async getPipelineById(
 		@Request() req: SignedInRequest,

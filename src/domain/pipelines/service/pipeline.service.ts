@@ -21,8 +21,9 @@ import { EndPipelineStepDTO } from '../dto/end_pipeline_step.dto';
 import { RabbitMQService } from '../../../infrastructure/messaging/rabbitmq.service';
 import * as process from 'node:process';
 import { RunTestCodeDTO } from '../dto/run_test_code.dto';
-import { Code } from '../code.entities';
+import { Code, CodeStatus } from '../code.entities';
 import { UpdatePipelineDTO } from '../dto/update_pipeline.dto';
+import { UserFollows } from '../../users/user_follows.entities';
 
 @Injectable()
 export class PipelineService {
@@ -406,9 +407,12 @@ export class PipelineService {
 		});
 	}
 
-	getPipelineById(pipelineId: number, userId: number) {
-		return this.pipelineRepository.findOne({
-			where: { id: pipelineId, user: { id: userId } },
+	async getPipelineById(pipelineId: number, userId: number) {
+		const pipeline = await this.pipelineRepository.findOne({
+			where: [
+				{ id: pipelineId, user: { id: userId } },
+				{ id: pipelineId, status: CodeStatus.active },
+			],
 			relations: [
 				'pipelineCodes',
 				'pipelineCodes.version',
@@ -423,6 +427,12 @@ export class PipelineService {
 			],
 			order: { createdAt: 'DESC' },
 		});
+
+		if (!pipeline) {
+			throw new NotFoundException(`Pipeline with ID ${pipelineId} not found`);
+		}
+
+		return pipeline;
 	}
 
 	async updatePipeline(
@@ -457,8 +467,16 @@ export class PipelineService {
 			}
 
 			// Update main pipeline properties
-			pipeline.title = updatePipelineDto.title;
-			pipeline.description = updatePipelineDto.description;
+			if (updatePipelineDto.title) {
+				pipeline.title = updatePipelineDto.title;
+			}
+			if (updatePipelineDto.description) {
+				pipeline.description = updatePipelineDto.description;
+			}
+
+			if (updatePipelineDto.status) {
+				pipeline.status = updatePipelineDto.status;
+			}
 
 			await queryRunner.manager.save(pipeline);
 
@@ -513,5 +531,42 @@ export class PipelineService {
 		} finally {
 			await queryRunner.release();
 		}
+	}
+
+	async getAllRelatedPipelines(userId: number) {
+		const query = this.pipelineRepository
+			.createQueryBuilder('pipelines')
+			.leftJoinAndSelect('pipelines.pipelineCodes', 'pipelineCodes')
+			.leftJoinAndSelect('pipelineCodes.version', 'version')
+			.leftJoinAndSelect('version.input', 'input')
+			.leftJoinAndSelect('version.output', 'output')
+			.leftJoinAndSelect('output.fileType', 'outputFileType')
+			.leftJoinAndSelect('input.fileType', 'inputFileType')
+			.leftJoinAndSelect('pipelines.user', 'user')
+			.leftJoinAndSelect('user.profilePicture', 'profilePicture')
+			.where(qb => {
+				const subQuery1 = qb
+					.subQuery()
+					.select('c.id')
+					.from(Pipeline, 'c')
+					.innerJoin(UserFollows, 'uf', 'uf.user.id = c.user.id')
+					.where('uf.follower.id = :userId', { userId })
+					// .andWhere('c.status = :status', { status: CodeStatus.active })
+					.getQuery();
+
+				const subQuery3 = qb
+					.subQuery()
+					.select('c.id')
+					.from(Pipeline, 'c')
+					.where('c.user.id = :userId', { userId })
+					.getQuery();
+
+				return `pipelines.id IN (${subQuery1} UNION ${subQuery3})`;
+			})
+			.orderBy('pipelines.createdAt', 'DESC');
+
+		const [pipelines] = await query.getManyAndCount();
+
+		return pipelines;
 	}
 }
