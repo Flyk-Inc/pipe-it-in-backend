@@ -11,6 +11,7 @@ import { PipelineCode } from './pipeline_code.entities';
 import { Run } from './run.entities';
 import { User } from '../../users/users.entities';
 import { userToMinifiedUser } from '../../content/dto/UserFormatter';
+import { CodeStatus } from '../code.entities';
 
 @Entity({ name: 'Pipelines' })
 export class Pipeline {
@@ -22,6 +23,10 @@ export class Pipeline {
 
 	@Column({ type: 'text' })
 	description: string;
+
+	@Column()
+	@Column({ default: 'active' })
+	status: CodeStatus;
 
 	@OneToMany(() => PipelineCode, pipelineCode => pipelineCode.pipeline, {
 		cascade: true,
@@ -45,6 +50,7 @@ export class Pipeline {
 			id: this.id,
 			title: this.title,
 			description: this.description,
+			status: this.status,
 			pipelineCodes: this.pipelineCodes
 				? this.pipelineCodes.sort((a, b) => a.step - b.step)
 				: [],
