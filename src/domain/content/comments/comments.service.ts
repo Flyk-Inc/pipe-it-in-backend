@@ -114,9 +114,34 @@ export class CommentService {
 			throw new NotFoundException('Post not found');
 		}
 
-		return await this.commentRepository.find({
-			where: { post: { id: postId } },
-			relations: ['user', 'replies'],
-		});
+		const query = this.commentRepository
+			.createQueryBuilder('comment')
+			.leftJoinAndSelect('comment.user', 'user')
+			.leftJoinAndSelect('user.profilePicture', 'userProfilePicture')
+			.leftJoinAndSelect('comment.replies', 'replies')
+			.leftJoinAndSelect('replies.user', 'repliesUser')
+			.leftJoinAndSelect(
+				'repliesUser.profilePicture',
+				'repliesUserProfilePicture'
+			)
+			.leftJoinAndSelect('comment.reactions', 'reactions')
+			.addSelect('COUNT(reactions.id) as reactionCount')
+			.addSelect(
+				'SUM(CASE WHEN reactions.isLike = true THEN 1 ELSE 0 END) as likeCount'
+			)
+			.where('comment.post.id = :postId', { postId })
+			.groupBy('comment.id')
+			.addGroupBy('user.id')
+			.addGroupBy('userProfilePicture.id')
+			.addGroupBy('replies.id')
+			.addGroupBy('repliesUser.id')
+			.addGroupBy('repliesUserProfilePicture.id')
+			.orderBy('likeCount', 'DESC')
+			.addOrderBy('comment.createdAt', 'DESC');
+
+		query.addGroupBy('reactions.id');
+
+		const comments = await query.getRawAndEntities();
+		return comments.entities;
 	}
 }
