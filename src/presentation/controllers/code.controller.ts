@@ -67,6 +67,14 @@ export class CodeController {
 		return this.codeService.getCodesByUser(req.user.userId);
 	}
 
+	@Get('timeline')
+	@UseGuards(JwtAuthGuard)
+	async getAllRelatedCodesByAuhtenticatedUser(
+		@Req() req: SignedInRequest
+	): Promise<Code[]> {
+		return this.codeService.getRelatedCodesByUser(req.user.userId);
+	}
+
 	@Get('search')
 	@UseGuards(JwtAuthGuard)
 	async getPublicVersions(@Query('query') query: string): Promise<Code[]> {
