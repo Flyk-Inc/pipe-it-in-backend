@@ -150,6 +150,7 @@ export class RelationshipService {
 			where: {
 				follower: { id: followerId },
 				user: { id: userId },
+				isAccepted: false,
 			},
 		});
 
@@ -174,8 +175,13 @@ export class RelationshipService {
 	 */
 	async acceptFollowRequest(followerId: number, userId: number): Promise<void> {
 		const request = await this.followRequestRepository.findOne({
-			where: { follower: { id: followerId }, user: { id: userId } },
+			where: {
+				follower: { id: followerId },
+				user: { id: userId },
+				isAccepted: false,
+			},
 			relations: ['follower', 'user'],
+			order: { createdAt: 'DESC' },
 		});
 		if (!request) {
 			throw new NotFoundException('No follow request');
@@ -210,6 +216,7 @@ export class RelationshipService {
 		const request = await this.followRequestRepository.findOne({
 			where: { follower: { id: followerId }, user: { id: userId } },
 			relations: ['follower', 'user'],
+			order: { createdAt: 'DESC' },
 		});
 
 		if (!request) {
