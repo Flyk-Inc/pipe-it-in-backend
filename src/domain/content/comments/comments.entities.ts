@@ -11,6 +11,7 @@ import {
 import { Posts } from '../posts.entities';
 import { User } from '../../users/users.entities';
 import { Reaction } from './reactions/reactions.entities';
+import { userToMinifiedUser } from '../dto/UserFormatter';
 
 @Entity('comments')
 export class Comment {
@@ -43,4 +44,18 @@ export class Comment {
 
 	@OneToMany(() => Reaction, reaction => reaction.comment)
 	reactions: Reaction[];
+
+	toJSON() {
+		return {
+			id: this.id,
+			user: this.user ? userToMinifiedUser(this.user) : null,
+			post: this.post,
+			parent: this.parent ?? null,
+			content: this.content,
+			createdAt: this.createdAt,
+			updatedAt: this.updatedAt,
+			replies: this.replies,
+			reactions: this.reactions,
+		};
+	}
 }

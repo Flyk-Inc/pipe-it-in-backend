@@ -38,7 +38,7 @@ export class CommentService {
 			throw new NotFoundException('Post not found');
 		}
 
-		const comment = this.commentRepository.create({
+		let comment = this.commentRepository.create({
 			user,
 			post,
 			content: createCommentDTO.content,
@@ -49,7 +49,12 @@ export class CommentService {
 				: null,
 		});
 
-		return await this.commentRepository.save(comment);
+		comment = await this.commentRepository.save(comment);
+
+		return this.commentRepository.findOne({
+			where: { id: comment.id },
+			relations: ['user', 'user.profilePicture', 'replies', 'replies.user'],
+		});
 	}
 
 	async updateComment(
@@ -114,9 +119,41 @@ export class CommentService {
 			throw new NotFoundException('Post not found');
 		}
 
-		return await this.commentRepository.find({
-			where: { post: { id: postId } },
-			relations: ['user', 'replies'],
-		});
+		const query = this.commentRepository
+			.createQueryBuilder('comment')
+			.leftJoinAndSelect('comment.user', 'user')
+			.leftJoinAndSelect('comment.parent', 'commentParent')
+			.leftJoinAndSelect('comment.reactions', 'commentReactions')
+			.leftJoinAndSelect('commentReactions.user', 'commentReactionsUser')
+			.leftJoinAndSelect('user.profilePicture', 'userProfilePicture')
+			.leftJoinAndSelect('comment.replies', 'replies')
+			.leftJoinAndSelect('replies.user', 'repliesUser')
+			.leftJoinAndSelect('replies.reactions', 'repliesReactions')
+			.leftJoinAndSelect('repliesReactions.user', 'reactionsUser')
+			.leftJoinAndSelect(
+				'repliesUser.profilePicture',
+				'repliesUserProfilePicture'
+			)
+			.addSelect('COUNT(commentReactions.id) as reactionCount')
+			.addSelect(
+				'SUM(CASE WHEN commentReactions.isLike = true THEN 1 ELSE 0 END) as likeCount'
+			)
+			.where('comment.post.id = :postId', { postId })
+			.groupBy('comment.id')
+			.addGroupBy('user.id')
+			.addGroupBy('commentParent.id')
+			.addGroupBy('commentReactions.id')
+			.addGroupBy('commentReactionsUser.id')
+			.addGroupBy('userProfilePicture.id')
+			.addGroupBy('replies.id')
+			.addGroupBy('repliesUser.id')
+			.addGroupBy('repliesReactions.id')
+			.addGroupBy('reactionsUser.id')
+			.addGroupBy('repliesUserProfilePicture.id')
+			.orderBy('likeCount', 'DESC')
+			.addOrderBy('comment.createdAt', 'DESC');
+
+		const comments = await query.getRawAndEntities();
+		return comments.entities;
 	}
 }

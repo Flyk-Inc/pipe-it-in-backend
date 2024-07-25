@@ -116,7 +116,10 @@ export class GroupService {
 	}
 
 	async leaveGroup(userId: number, groupId: number): Promise<void> {
-		const group = await this.groupRepository.findOneBy({ id: groupId });
+		const group = await this.groupRepository.findOne({
+			where: { id: groupId },
+			relations: ['members'],
+		});
 		if (!group) {
 			throw new NotFoundException('Group not found');
 		}
@@ -129,12 +132,37 @@ export class GroupService {
 		}
 
 		await this.groupMemberRepository.remove(groupMember);
+
+		// Check if the user was the admin
+		if (groupMember.isAdmin) {
+			// Get the remaining members sorted by join date
+			const remainingMembers = await this.groupMemberRepository.find({
+				where: { groupId: groupId },
+				order: { joinedAt: 'ASC' },
+			});
+
+			if (remainingMembers.length > 0) {
+				// Assign the admin role to the oldest remaining member
+				const oldestMember = remainingMembers[0];
+				oldestMember.isAdmin = true;
+				await this.groupMemberRepository.save(oldestMember);
+			}
+		}
+
+		// Check if the group has no more members
+		const memberCount = await this.groupMemberRepository.count({
+			where: { groupId: groupId },
+		});
+		if (memberCount === 0) {
+			await this.groupRepository.remove(group);
+		}
 	}
 
 	async getUserGroups(userId: number): Promise<Group[]> {
 		const queryBuilder = this.groupRepository
 			.createQueryBuilder('group')
-			.leftJoin('group.members', 'members')
+			.leftJoinAndSelect('group.members', 'members')
+			.leftJoinAndSelect('group.profilePicture', 'profilePicture')
 			.innerJoin(
 				'group.members',
 				'userGroupMembers',
@@ -142,6 +170,8 @@ export class GroupService {
 				{ userId }
 			)
 			.groupBy('group.id')
+			.addGroupBy('profilePicture.id')
+			.addGroupBy('members.id')
 			.addSelect('COUNT(members.id)', 'memberCount');
 
 		const rawAndEntities = await queryBuilder.getRawAndEntities();
