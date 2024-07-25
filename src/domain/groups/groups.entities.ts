@@ -49,4 +49,7 @@ export class Group {
 
 	@Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
 	updatedAt: Date;
+
+	memberCount?: number;
+	postCount?: number;
 }

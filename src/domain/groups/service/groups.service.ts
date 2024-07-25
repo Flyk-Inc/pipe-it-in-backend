@@ -12,6 +12,7 @@ import { CreateGroupDTO } from '../dto/createGroupDTO';
 import { UpdateGroupDTO } from '../dto/UpdateGroupDTO';
 import { GroupMember } from '../groupMembers.entities';
 import { GroupRequest } from '../group_request.entities';
+import { Posts } from '../../content/posts.entities';
 
 @Injectable()
 export class GroupService {
@@ -21,7 +22,8 @@ export class GroupService {
 		private groupMemberRepository: Repository<GroupMember>,
 		@InjectRepository(User) private userRepository: Repository<User>,
 		@InjectRepository(GroupRequest)
-		private groupRequestRepository: Repository<GroupRequest>
+		private groupRequestRepository: Repository<GroupRequest>,
+		@InjectRepository(Posts) private postsRepository: Repository<Posts>
 	) {}
 
 	async createGroup(
@@ -228,6 +230,20 @@ export class GroupService {
 		if (!group) {
 			throw new NotFoundException('Group not found');
 		}
+
+		// Calculate member count
+		const memberCount = await this.groupMemberRepository.count({
+			where: { group: { id: groupId } },
+		});
+
+		// Calculate post count
+		const postCount = await this.postsRepository.count({
+			where: { groupId: groupId },
+		});
+
+		group.memberCount = memberCount;
+		group.postCount = postCount;
+
 		return group;
 	}
 }
