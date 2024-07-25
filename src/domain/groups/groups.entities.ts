@@ -1,12 +1,14 @@
 import {
 	Column,
 	Entity,
+	JoinColumn,
 	ManyToOne,
 	OneToMany,
 	PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '../users/users.entities';
 import { GroupMember } from './groupMembers.entities';
+import { FileEntity } from '../pipelines/code-runner/file.entities';
 
 @Entity({ name: 'Groups' })
 export class Group {
@@ -22,8 +24,9 @@ export class Group {
 	@Column({ type: 'boolean', default: false })
 	isPrivate: boolean;
 
-	@Column({ nullable: true })
-	profilePicture?: number;
+	@ManyToOne(() => FileEntity)
+	@JoinColumn({ name: 'profile_picture' })
+	profilePicture: FileEntity;
 
 	@Column({ nullable: true })
 	pinnedPost?: number;

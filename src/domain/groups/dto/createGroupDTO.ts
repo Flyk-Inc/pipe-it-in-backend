@@ -4,7 +4,10 @@ import {
 	IsNotEmpty,
 	IsOptional,
 	IsString,
+	ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import { FileEntity } from '../../pipelines/code-runner/file.entities';
 
 export class CreateGroupDTO {
 	@IsString()
@@ -19,9 +22,10 @@ export class CreateGroupDTO {
 	@IsOptional()
 	isPrivate?: boolean;
 
-	@IsInt()
+	@ValidateNested()
+	@Type(() => FileEntity)
 	@IsOptional()
-	profilePicture?: number;
+	profilePicture?: FileEntity;
 
 	@IsInt()
 	@IsOptional()

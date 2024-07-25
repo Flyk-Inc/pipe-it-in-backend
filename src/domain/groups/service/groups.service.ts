@@ -134,7 +134,8 @@ export class GroupService {
 	async getUserGroups(userId: number): Promise<Group[]> {
 		const queryBuilder = this.groupRepository
 			.createQueryBuilder('group')
-			.leftJoin('group.members', 'members')
+			.leftJoinAndSelect('group.members', 'members')
+			.leftJoinAndSelect('group.profilePicture', 'profilePicture')
 			.innerJoin(
 				'group.members',
 				'userGroupMembers',
@@ -142,6 +143,8 @@ export class GroupService {
 				{ userId }
 			)
 			.groupBy('group.id')
+			.addGroupBy('profilePicture.id')
+			.addGroupBy('members.id')
 			.addSelect('COUNT(members.id)', 'memberCount');
 
 		const rawAndEntities = await queryBuilder.getRawAndEntities();
