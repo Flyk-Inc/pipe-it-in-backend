@@ -38,7 +38,7 @@ export class CommentService {
 			throw new NotFoundException('Post not found');
 		}
 
-		const comment = this.commentRepository.create({
+		let comment = this.commentRepository.create({
 			user,
 			post,
 			content: createCommentDTO.content,
@@ -49,7 +49,12 @@ export class CommentService {
 				: null,
 		});
 
-		return await this.commentRepository.save(comment);
+		comment = await this.commentRepository.save(comment);
+
+		return this.commentRepository.findOne({
+			where: { id: comment.id },
+			relations: ['user', 'user.profilePicture', 'replies', 'replies.user'],
+		});
 	}
 
 	async updateComment(
