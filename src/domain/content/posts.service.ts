@@ -133,7 +133,6 @@ export class PostsService {
 			.leftJoinAndSelect('posts.comments', 'comments')
 			.leftJoinAndSelect('posts.likes', 'likes')
 			.where('posts.user_id = :userId', { userId })
-			.andWhere('posts.group_id IS NULL')
 			.orderBy('posts.created_at', 'DESC')
 			.limit(limit);
 
@@ -270,6 +269,7 @@ export class PostsService {
 		const query = this.postsRepository
 			.createQueryBuilder('posts')
 			.leftJoinAndSelect('posts.user', 'user')
+			.leftJoinAndSelect('posts.version', 'version')
 			.leftJoinAndSelect('posts.comments', 'comments')
 			.leftJoinAndSelect('posts.likes', 'likes')
 			.leftJoinAndSelect('user.profilePicture', 'profilePicture')
