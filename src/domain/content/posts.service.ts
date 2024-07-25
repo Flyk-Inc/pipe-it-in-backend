@@ -32,6 +32,7 @@ export class PostsService {
 	}
 
 	async getPostById(postId: number): Promise<Posts> {
+		console.log('postId', postId);
 		const post = await this.postsRepository.findOne({
 			where: { id: postId },
 			relations: [
@@ -59,7 +60,14 @@ export class PostsService {
 		});
 		const createdPost = await this.postsRepository.findOne({
 			where: { id },
-			relations: ['user', 'comments', 'likes', 'version', 'version.code'],
+			relations: [
+				'user',
+				'user.profilePicture',
+				'comments',
+				'likes',
+				'version',
+				'version.code',
+			],
 		});
 
 		return postToTimelinePost(createdPost);
