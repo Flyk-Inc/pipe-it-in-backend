@@ -186,14 +186,14 @@ export class PostsService {
 		}
 	}
 
-	async getTimelinePosts(userId: number, cursor?: string, limit: number = 10) {
+	async getTimelinePosts(userId: number, cursor?: string, limit: number = 100) {
 		const query = this.postsRepository
 			.createQueryBuilder('posts')
 			.leftJoinAndSelect('posts.user', 'user')
 			.leftJoinAndSelect('posts.comments', 'comments')
 			.leftJoinAndSelect('posts.version', 'version')
-			.leftJoinAndSelect('version.code', 'code') // Include the nested relation
-			.leftJoinAndSelect('code.author', 'author') // Include the nested relation
+			.leftJoinAndSelect('version.code', 'code')
+			.leftJoinAndSelect('code.author', 'author')
 			.leftJoinAndSelect('posts.likes', 'likes')
 			.leftJoinAndSelect('user.profilePicture', 'profilePicture')
 			.where(qb => {
@@ -220,10 +220,7 @@ export class PostsService {
 					.where('p.user.id = :userId', { userId })
 					.getQuery();
 
-				let whereClause = `posts.id IN (${subQuery1} UNION ${subQuery2} UNION ${subQuery3})`;
-				if (cursor) {
-					whereClause += ` AND posts.created_at < :cursor`;
-				}
+				const whereClause = `posts.id IN (${subQuery1} UNION ${subQuery2} UNION ${subQuery3})`;
 				return whereClause;
 			})
 			.orderBy('posts.created_at', 'DESC')
