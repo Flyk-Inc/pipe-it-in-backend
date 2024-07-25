@@ -11,6 +11,7 @@ import { User } from '../../users/users.entities';
 import { CreateGroupDTO } from '../dto/createGroupDTO';
 import { UpdateGroupDTO } from '../dto/UpdateGroupDTO';
 import { GroupMember } from '../groupMembers.entities';
+import { GroupRequest } from '../group_request.entities';
 
 @Injectable()
 export class GroupService {
@@ -18,7 +19,9 @@ export class GroupService {
 		@InjectRepository(Group) private groupRepository: Repository<Group>,
 		@InjectRepository(GroupMember)
 		private groupMemberRepository: Repository<GroupMember>,
-		@InjectRepository(User) private userRepository: Repository<User>
+		@InjectRepository(User) private userRepository: Repository<User>,
+		@InjectRepository(GroupRequest)
+		private groupRequestRepository: Repository<GroupRequest>
 	) {}
 
 	async createGroup(
@@ -88,7 +91,11 @@ export class GroupService {
 			throw new BadRequestException('Group is public. You can join directly.');
 		}
 
-		// Implement your logic to request access to the group
+		const groupRequest = new GroupRequest();
+		groupRequest.requester = user;
+		groupRequest.group = group;
+
+		await this.groupRequestRepository.save(groupRequest);
 	}
 
 	async updateGroup(
@@ -163,6 +170,7 @@ export class GroupService {
 			.createQueryBuilder('group')
 			.leftJoinAndSelect('group.members', 'members')
 			.leftJoinAndSelect('group.profilePicture', 'profilePicture')
+			.leftJoinAndSelect('group.receivedGroupRequests', 'receivedGroupRequests')
 			.innerJoin(
 				'group.members',
 				'userGroupMembers',
@@ -172,6 +180,7 @@ export class GroupService {
 			.groupBy('group.id')
 			.addGroupBy('profilePicture.id')
 			.addGroupBy('members.id')
+			.addGroupBy('receivedGroupRequests.id')
 			.addSelect('COUNT(members.id)', 'memberCount');
 
 		const rawAndEntities = await queryBuilder.getRawAndEntities();
@@ -209,5 +218,16 @@ export class GroupService {
 			...entity,
 			memberCount: parseInt(raw[index].memberCount, 10),
 		}));
+	}
+
+	async getGroupById(groupId: number): Promise<Group> {
+		const group = await this.groupRepository.findOne({
+			where: { id: groupId },
+			relations: ['members', 'profilePicture', 'receivedGroupRequests'],
+		});
+		if (!group) {
+			throw new NotFoundException('Group not found');
+		}
+		return group;
 	}
 }

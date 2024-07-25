@@ -54,6 +54,7 @@ import { FileEntity } from './domain/pipelines/code-runner/file.entities';
 import { FileController } from './presentation/controllers/files.controller';
 import { MailerService } from './infrastructure/messaging/mailer.service';
 import { EmailConfirmationService } from './infrastructure/auth/email-confirmation.service';
+import { GroupRequest } from './domain/groups/group_request.entities';
 
 @Module({
 	imports: [
@@ -69,6 +70,7 @@ import { EmailConfirmationService } from './infrastructure/auth/email-confirmati
 			Reaction,
 			Group,
 			GroupMember,
+			GroupRequest,
 			Code,
 			Version,
 			FileTypes,

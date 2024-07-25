@@ -19,6 +19,7 @@ import { Reaction } from '../content/comments/reactions/reactions.entities';
 import { Code } from '../pipelines/code.entities';
 import { FileEntity } from '../pipelines/code-runner/file.entities';
 import { Pipeline } from '../pipelines/code-runner/pipeline.entities';
+import { GroupRequest } from '../groups/group_request.entities';
 
 export interface MinifiedUser {
 	firstName: string;
@@ -85,6 +86,9 @@ export class User {
 
 	@OneToMany(() => FollowRequest, followRequest => followRequest.user)
 	receivedFollowRequests: FollowRequest[];
+
+	@OneToMany(() => GroupRequest, groupRequest => groupRequest.requester)
+	sentGroupRequests: GroupRequest[];
 
 	@OneToMany(() => Posts, post => post.user)
 	posts: Posts[];

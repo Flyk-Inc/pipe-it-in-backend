@@ -12,6 +12,7 @@ import { GroupMember } from '../groups/groupMembers.entities';
 import { UserFollows } from '../users/user_follows.entities';
 import { postToTimelinePost } from './dto/PostFormatter';
 import { TimelinePost } from './dto/TimelinePost';
+import { Group } from '../groups/groups.entities';
 
 @Injectable()
 export class PostsService {
@@ -19,7 +20,9 @@ export class PostsService {
 		@InjectRepository(Posts)
 		private readonly postsRepository: Repository<Posts>,
 		@InjectRepository(User)
-		private readonly userRepository: Repository<User>
+		private readonly userRepository: Repository<User>,
+		@InjectRepository(Group)
+		private readonly groupRepository: Repository<Group>
 	) {}
 
 	/**
@@ -235,6 +238,51 @@ export class PostsService {
 		const timelinePosts = posts.map(post => postToTimelinePost(post));
 		const nextCursor =
 			posts.length > 0 ? posts[posts.length - 1].createdAt : null;
+
+		return {
+			data: timelinePosts,
+			total,
+			cursor: nextCursor,
+			limit,
+		};
+	}
+
+	async getPostsByGroup(
+		groupId: number,
+		cursor?: string,
+		limit: number = 10
+	): Promise<{
+		data: TimelinePost[];
+		total: number;
+		cursor?: string | null;
+		limit: number;
+	}> {
+		const group = await this.groupRepository.findOne({
+			where: { id: groupId },
+		});
+		if (!group) {
+			throw new NotFoundException('Group not found');
+		}
+
+		const query = this.postsRepository
+			.createQueryBuilder('posts')
+			.leftJoinAndSelect('posts.user', 'user')
+			.leftJoinAndSelect('posts.comments', 'comments')
+			.leftJoinAndSelect('posts.likes', 'likes')
+			.leftJoinAndSelect('user.profilePicture', 'profilePicture')
+			.where('posts.groupId = :groupId', { groupId })
+			.orderBy('posts.createdAt', 'DESC')
+			.limit(limit);
+
+		if (cursor) {
+			query.andWhere('posts.createdAt < :cursor', { cursor: new Date(cursor) });
+		}
+
+		const [posts, total] = await query.getManyAndCount();
+
+		const timelinePosts = posts.map(post => postToTimelinePost(post));
+		const nextCursor =
+			posts.length > 0 ? posts[posts.length - 1].createdAt.toISOString() : null;
 
 		return {
 			data: timelinePosts,

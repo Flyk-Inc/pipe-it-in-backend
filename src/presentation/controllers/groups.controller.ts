@@ -93,4 +93,10 @@ export class GroupController {
 		const userId = req.user.userId;
 		return await this.groupService.getPopularGroups(userId);
 	}
+
+	@UseGuards(JwtAuthGuard)
+	@Get(':groupId')
+	async getGroup(@Param('groupId', ParseIntPipe) groupId: number) {
+		return await this.groupService.getGroupById(groupId);
+	}
 }

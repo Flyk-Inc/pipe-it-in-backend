@@ -138,4 +138,13 @@ export class PostsController {
 
 		return await this.tagService.getPostsByTags(tagList);
 	}
+
+	@Get('/group/:groupId')
+	async getPostsByGroup(
+		@Param('groupId', ParseIntPipe) groupId: number,
+		@Query('cursor') cursor: string,
+		@Query('limit') limit: number
+	) {
+		return await this.postsService.getPostsByGroup(groupId, cursor, limit);
+	}
 }

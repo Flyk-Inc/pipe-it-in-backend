@@ -9,6 +9,7 @@ import {
 import { User } from '../users/users.entities';
 import { GroupMember } from './groupMembers.entities';
 import { FileEntity } from '../pipelines/code-runner/file.entities';
+import { GroupRequest } from './group_request.entities';
 
 @Entity({ name: 'Groups' })
 export class Group {
@@ -39,6 +40,9 @@ export class Group {
 
 	@OneToMany(() => GroupMember, groupMember => groupMember.group)
 	members: GroupMember[];
+
+	@OneToMany(() => GroupRequest, groupRequest => groupRequest.group)
+	receivedGroupRequests: GroupRequest[];
 
 	@Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
 	createdAt: Date;
