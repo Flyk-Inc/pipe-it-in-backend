@@ -4,6 +4,7 @@ import {
 	Get,
 	Param,
 	Patch,
+	Query,
 	Request,
 	UseGuards,
 } from '@nestjs/common';
@@ -26,6 +27,15 @@ export class UsersController {
 	@Get('profile')
 	getProfile(@Request() req: SignedInRequest) {
 		return this.usersService.getUserByEmail(req.user.email);
+	}
+
+	@UseGuards(JwtAuthGuard)
+	@Get('search')
+	async searchForUsers(
+		@Request() req: SignedInRequest,
+		@Query('query') search: string
+	) {
+		return this.usersService.searchForUsers(req.user.userId, search);
 	}
 
 	@UseGuards(JwtAuthGuard)
