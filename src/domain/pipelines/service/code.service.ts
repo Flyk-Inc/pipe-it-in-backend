@@ -387,7 +387,10 @@ export class CodeService {
 
 	async getCodeDetailById(codeId: number, userId: number) {
 		const code = await this.codeRepository.findOne({
-			where: { id: codeId, author: { id: userId } },
+			where: [
+				{ id: codeId, author: { id: userId } },
+				{ id: codeId, status: CodeStatus.active },
+			],
 			relations: {
 				author: true,
 				input: { fileType: true },

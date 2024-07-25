@@ -209,7 +209,6 @@ export class GroupService {
 			.andWhere(`group.id NOT IN (${subQuery.getQuery()})`)
 			.groupBy('group.id')
 			.orderBy('COUNT(members.id)', 'DESC')
-			.limit(10)
 			.addSelect('COUNT(members.id)', 'memberCount')
 			.setParameter('userId', userId);
 
