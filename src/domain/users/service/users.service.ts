@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { User } from '../users.entities';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { CreateUserDTO } from '../dto/createUserDTO';
 import { Role } from '../../../infrastructure/auth/roles.entities';
 import { Posts } from '../../content/posts.entities';
@@ -131,5 +131,30 @@ export class UsersService {
 		const user = await this.getUserByEmail(email);
 		user.isActive = true;
 		await this.usersRepository.save(user);
+	}
+
+	async searchForUsers(userId: number, search: string): Promise<User[]> {
+		if (!search.trim()) {
+			throw new BadRequestException('Search query cannot be empty');
+		}
+
+		const users = await this.usersRepository.find({
+			where: [
+				{ username: Like(`%${search}%`) },
+				{ email: Like(`%${search}%`) },
+				{ firstName: Like(`%${search}%`) },
+				{ lastName: Like(`%${search}%`) },
+			],
+			relations: [
+				'roles',
+				'profilePicture',
+				'followers',
+				'followers.follower',
+				'following',
+				'posts',
+			],
+		});
+
+		return users.filter(user => user.id !== userId);
 	}
 }

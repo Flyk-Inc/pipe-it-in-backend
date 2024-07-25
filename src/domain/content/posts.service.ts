@@ -59,7 +59,7 @@ export class PostsService {
 		});
 		const createdPost = await this.postsRepository.findOne({
 			where: { id },
-			relations: ['user', 'comments', 'likes'],
+			relations: ['user', 'comments', 'likes', 'version', 'version.code'],
 		});
 
 		return postToTimelinePost(createdPost);
@@ -100,7 +100,10 @@ export class PostsService {
 			throw new Error('Post not found');
 		}
 
-		return await this.postsRepository.findOne({ where: { id: postId } });
+		return await this.postsRepository.findOne({
+			where: { id: postId },
+			relations: { version: { code: true } },
+		});
 	}
 
 	/**
